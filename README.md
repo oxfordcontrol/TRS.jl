@@ -1,11 +1,11 @@
-# TRS.jl: Solving the Trust Region Subproblem as an eigenproblem
+# TRS.jl: Solving the Trust Region Subproblem
 
 This package solves the Trust-Region subproblem:
 ```
 minimize    ½x'Px + q'x
 subject to  ‖x‖ ≤ r
 ```
-where `x` in the `n-`dimensional variable. This is a **matrix-free** method obtaining highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
+where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
 Furthermore, the following extensions are supported:
 * Ellipsoidal norms: `‖x‖ = sqrt(x'Cx)` for any positive definite `C`.
@@ -59,7 +59,7 @@ which is the same as `trs(P, q, r)` except for the input argument
 
 **N.B.**: `trs(P, q, r, C)` solves a considerably different eigenproblem (a generalized eigenvalue problem as compared to the unsymmetric standard eigenproblem of `trs(P, q, r)`). The user might prefer to perform a change of variables `y = cholesky(C)\x` and use `trs(P, q, r)` in cases where:
 * Repeated problems need to be solved with the same `C`; and/or
-* A high accuracy solutions is not required.
+* A high accuracy solution is not required.
 
 ### Equality constraints
 The problem
@@ -70,15 +70,21 @@ subject to  ‖x‖ ≤ r
 ```
 can be solved as
 ```
-trs(P, q, r, F) -> x, info
+trs(P, q, r, F, b) -> x, info
 ```
-which is the same as `trs(P, q, r)` for the input argument `F` which can either be
+which is the same as `trs(P, q, r)` for the input argument `b::AbstractVector{T}` and `F` which can either be
 * `F::Factorization{T}`: a factorization of the matrix `[I A'; A 0]`; or
 * `F::function`: a mutating function `F(y, z)` which writes into `y` the projection of `z` into the nullspace of `A`.
+
+Solution of problems involving both equality constraints and ellipsoidal norms can be solved with
+```
+trs(P, q, r, C, F, b) -> x, info
+```
+
 ### Finding local-no-global minimizers.
 Due to non-convexity, TRS can exhibit at most one local minimizer with objective value less than the one of the global. This can be obtained via:
 ```
-trs(P, q, r, [F, C::AbstractMatrix{T}=I}], compute_local=true) -> x1, x2, info
+trs(···; compute_local=true) -> x1, x2, info
 ```
 * If we do not belong the *hard-case* (i.e. almost always):  
 `x1::Vector{T}` is the global solution; and  
@@ -89,12 +95,19 @@ trs(P, q, r, [F, C::AbstractMatrix{T}=I}], compute_local=true) -> x1, x2, info
 
 The user can detect the hard case via the returned symbol in `info.status`.
 
-### Solving constant norms
+
+### Solving constant-norm problems
 Simply use `trs_boundary` instead of `trs`.
 
-### The `TRSInfo` structure
+### The `TRSInfo` struct
 The returned info structure contains the following 
-* `status::Symbol`
 * `niter::Int`:  Number of iterations of the eigensolver
 * `nmul::Int`:   Number of multiplications with P requested by the eigensolver.
 * `λ::Vector{T}` Lagrange Multiplier(s) of the solution(s).
+* `status::Symbol` described below
+
+| Symbol | Explanation                               |
+|--------|-------------------------------------------|
+| `:G`   | Global solution found (non-hard case)     |
+| `:GH`  | Global solution(s) found (hard-case)      |
+| `:GL`  | Global and local-no-global solutions found |
