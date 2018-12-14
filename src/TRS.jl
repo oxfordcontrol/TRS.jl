@@ -1,4 +1,4 @@
-__precompile__(true)
+# __precompile__(true)
 
 module TRS
 
@@ -9,5 +9,6 @@ using Arpack
 using Polynomials
 
 include("trust_region.jl")
+export trs, trs_boundary
 
 end

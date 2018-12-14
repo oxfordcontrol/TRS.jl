@@ -10,7 +10,7 @@ where `x` in the `n-`dimensional variable, in pure Julia. This is a `matrix-free
 This package implements the algorithm described in [Adachi et al 2017](https://epubs.siam.org/doi/abs/10.1137/16M1058200). Although an implementation can be written in just three lines this package provides a carefully written, efficient implementation.
 
 The following extensions are supported:
-* Ellipsoidal norms: `x'Cx = r^2`
+* Ellipsoidal norms: `‖x‖ = sqrt(x'Cx)` for any positive definite C.
 * Linear equality constraints: `Ax = b`
 * Degenerate cases (e.g. the so called `hard case`)
 * Finding the local-no-global minimizer.

@@ -9,8 +9,8 @@ mutable struct TRSinfo
 	end
 end
 
-function trs_full(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
-	x1, info = trs(P, q, r, tol)
+function trs(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
+	x1, info = trs_boundary(P, q, r, tol)
 	if info.λ <= 0 # Global solution is in the interior
 		cg!(x1, P, -q, 1e-12)
 		info.λ = 0
@@ -18,8 +18,8 @@ function trs_full(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
 	return x1, info
 end
 
-function trs_full(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) where {T}
-	x1, x2, info = trs(P, q, r, tol)
+function trs(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) where {T}
+	x1, x2, info = trs_boundary(P, q, r, tol)
 	if info.λ[1] <= 0 # Global solution is in the interior
 		cg!(x1, P, -q, 1e-12)
 		info.λ[1] = 0
@@ -32,20 +32,20 @@ function trs_full(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) wh
 	return x1, x2, info
 end
 
-function trs(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
+function trs_boundary(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
 	check_inputs(P, q, r)
-	return trs(() -> eigenproblem(P, q, r, 1, tol),
+	return trs_boundary(() -> eigenproblem(P, q, r, 1, tol),
 		   (λ, V) -> pop_solution!(P, q, r, V, λ))
 end
 
-function trs(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) where {T}
+function trs_boundary(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) where {T}
 	check_inputs(P, q, r)
-	return trs(() -> eigenproblem(P, q, r, 2, tol),
+	return trs_boundary(() -> eigenproblem(P, q, r, 2, tol),
 		   (λ, V) -> pop_solution!(P, q, r, V, λ),
 		true)
 end
 
-function trs(solve_eigenproblem::Function, pop_solution!::Function)
+function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function)
 	λ, V, niter, nmult = solve_eigenproblem()
 	x1, x2, λg = pop_solution!(λ, V)
 	if !isempty(x2)  # We can only have two global solutions in the "hard-case"
@@ -56,10 +56,10 @@ function trs(solve_eigenproblem::Function, pop_solution!::Function)
 	return x1, TRSinfo(status, niter, nmult, λg)
 end
 
-function trs(solve_eigenproblem::Function, pop_solution!::Function, compute_local)
+function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function, compute_local)
 	λ, V, niter, nmult = solve_eigenproblem()
 	x1, x2, λg = pop_solution!(λ, V) # Pop global minimizer(s).
-	if isempty(x2) # I.e. we are not in the hard-case
+	if isempty(x2) # i.e. we are not in the hard-case
 		x2, _, λl = pop_solution!(λ, V) # Pop local-no-global minimizer.
 		if !isempty(x2)
 			status = :GL # The "local-no-global" minimizer does not exists.
@@ -93,7 +93,7 @@ function pop_solution!(P, q::AbstractVector{T}, r::T, V::Matrix{Complex{T}}, λ:
 	n = length(q)
 
 	idx = argmax(real(λ))
-	if angle(λ[idx]) >= 1e-6
+	if angle(λ[idx]) >= 1e-6  # No more solutions...
 		return zeros(T, 0), zeros(T, 0), NaN
 	end
 	l = real(λ[idx]);
