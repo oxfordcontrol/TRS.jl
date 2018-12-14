@@ -1,14 +1,8 @@
-using LinearAlgebra
-using LinearMaps
-using IterativeSolvers
-using Arpack
-using Polynomials
-
 mutable struct TRSinfo
 	status::Symbol
-	niter::Int
-	nmul::Int
-	λ
+	niter::Int # Number of iterations in eigs
+	nmul::Int  # Number of multiplication with P in eigs
+	λ  # Lagrange Multiplier(s)
 
 	function TRSinfo(status::Symbol, niter::Int, nmul::Int, λ)
 		new(status, niter, nmul, λ)
@@ -41,13 +35,13 @@ end
 function trs(P, q::AbstractVector{T}, r::T, tol::T=1e-13) where {T}
 	check_inputs(P, q, r)
 	return trs(() -> eigenproblem(P, q, r, 1, tol),
-		(λ, V) -> pop_solution!(P, q, r, V, λ))
+		   (λ, V) -> pop_solution!(P, q, r, V, λ))
 end
 
 function trs(P, q::AbstractVector{T}, r::T, compute_local, tol::T=1e-13) where {T}
 	check_inputs(P, q, r)
 	return trs(() -> eigenproblem(P, q, r, 2, tol),
-		(λ, V) -> pop_solution!(P, q, r, V, λ),
+		   (λ, V) -> pop_solution!(P, q, r, V, λ),
 		true)
 end
 
