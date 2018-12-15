@@ -50,8 +50,9 @@ trs(P, q, r) -> x, info
 * `info::TRSInfo{T}`: Info structure. See below for details.
 
 **Keywords (optional)**
-* `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` for the solution of the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments.
-* `tol_hard=1e-4`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
+* `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular important is `tol::T` which essentially controls the accuracy of the returned solutions.
+* `tol_hard::T=1e-4`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
+* `compute_local::Bool=False`: Whether the local-no-global solution should be calculated. More details below.
 
 ### Ellipsoidal Norms
 Results for ellipsoidal norms `‖x‖ := sqrt(x'Cx)` can be obtained with
@@ -90,13 +91,13 @@ Due to non-convexity, TRS can exhibit at most one local minimizer with objective
 ```
 trs(···; compute_local=true) -> x1, x2, info
 ```
-Similarly to the cases above, `x1::Vector{T}` is the global solution. The second output `x2::Vector{T}` depends on whether the problem belongs to the hard case or not:
+Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding the second output `x2::Vector{T}`:
 
 **In normal cases:** (i.e. not in the hard-case -> "almost always")  
 `x2` is the local-no-global optimizer. If the local-no-global solution does not exist, a zero-length vector is returned.
 
 **In the hard case:**  
-`x2` corresponds to a second global minimizer. If no second global optimizer exists, a zero-length vector is returned.
+`x2` corresponds to a second global minimizer. If no second global optimizer were found, a zero-length vector is returned.
 
 The user can detect the hard case via the returned symbol in `info.status`.
 
