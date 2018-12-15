@@ -38,7 +38,7 @@ subject to  ‖x‖ = r,
 ```
 where ‖·‖ is the 2-norm, can be obtained with:
 ```
-trs(P, q, r) -> x, info
+trs(P, q, r; kwargs...) -> x, info
 ```
 **Arguments** (`T` is any real numerical type):
 * `P`: The quadratic cost represented as any linear operator implementing `mul!`, `issymmetric` and `size`.
@@ -57,7 +57,7 @@ trs(P, q, r) -> x, info
 ### Ellipsoidal Norms
 Results for ellipsoidal norms `‖x‖ := sqrt(x'Cx)` can be obtained with
 ```
-trs(P, q, r, C) -> x, info
+trs(P, q, r, C; kwargs...) -> x, info
 ```
 which is the same as `trs(P, q, r)` except for the input argument
 * `C::AbstractMatrix{T}`: a positive definite, symmetric, matrix that defines the ellipsoidal norm `‖x‖ := sqrt(x'Cx)`.
@@ -75,7 +75,7 @@ subject to  ‖x‖ ≤ r
 ```
 can be solved as
 ```
-trs(P, q, r, F, b) -> x, info
+trs(P, q, r, F, b; kwargs...) -> x, info
 ```
 which is the same as `trs(P, q, r)` except for the input arguments `b::AbstractVector{T}` and `F` which can either be
 * `F::Factorization{T}`: a factorization of the matrix `[I A'; A 0]`; or
@@ -83,13 +83,13 @@ which is the same as `trs(P, q, r)` except for the input arguments `b::AbstractV
 
 Solution of problems involving both equality constraints and ellipsoidal norms can be solved with
 ```
-trs(P, q, r, C, F, b) -> x, info
+trs(P, q, r, C, F, b; kwargs...) -> x, info
 ```
 
 ### Finding local-no-global minimizers.
 Due to non-convexity, TRS can exhibit at most one local minimizer with objective value less than the one of the global. This can be obtained via:
 ```
-trs(···; compute_local=true) -> x1, x2, info
+trs(···; compute_local=true, kwargs...) -> x1, x2, info
 ```
 Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding the second output `x2::Vector{T}`:
 
