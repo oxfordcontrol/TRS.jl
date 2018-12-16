@@ -14,6 +14,8 @@ Furthermore, the following extensions are supported:
 * Finding the local-no-global minimizer
 * Solving the related constant-norm (`‖x‖ = r`) problem for all of the cases described above.
 
+This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
+
 If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://no-link-yet.com) package.
 
 The main reference for this package is
@@ -50,9 +52,9 @@ trs(P, q, r; kwargs...) -> x, info
 * `info::TRSInfo{T}`: Info structure. See below for details.
 
 **Keywords (optional)**
-* `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular important is `tol::T` which essentially controls the accuracy of the returned solutions.
+* `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular importance is **`tol::T`** which essentially controls the **accuracy** of the returned solutions.
 * `tol_hard::T=1e-4`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
-* `compute_local::Bool=False`: Whether the local-no-global solution should be calculated. More details below.
+* `compute_local::Bool=False`: Whether the local-no-global solution should be calculated. More details [below](#finding-local-no-global-minimizers).
 
 ### Ellipsoidal Norms
 Results for ellipsoidal norms `‖x‖ := sqrt(x'Cx)` can be obtained with
@@ -86,8 +88,8 @@ Solution of problems involving both equality constraints and ellipsoidal norms c
 trs(P, q, r, C, F, b; kwargs...) -> x, info
 ```
 
-### Finding local-no-global minimizers.
-Due to non-convexity, TRS can exhibit at most one local minimizer with objective value less than the one of the global. This can be obtained via:
+### Finding local-no-global minimizers
+Due to non-convexity, TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:
 ```
 trs(···; compute_local=true, kwargs...) -> x1, x2, info
 ```
@@ -97,13 +99,18 @@ Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding 
 `x2` is the local-no-global optimizer. If the local-no-global solution does not exist, a zero-length vector is returned.
 
 **In the hard case:**  
-`x2` corresponds to a second global minimizer. If no second global optimizer were found, a zero-length vector is returned.
+`x2` corresponds to a second global minimizer.
 
 The user can detect the hard case via the returned symbol in `info.status`.
 
 
 ### Solving constant-norm problems
 Simply use `trs_boundary` instead of `trs`.
+
+### Solving small problems
+Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_boundary_small`, which have identical definitions with `trs` and `trs_boundary` described above, except for `P` which is constrained to be a subtype of `AbstractArray{T}`.
+
+Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (via `eigen`) providing better accuracy and reliability.
 
 ### The `TRSInfo` struct
 The returned info structure contains the following 
