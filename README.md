@@ -8,11 +8,11 @@ subject to  ‖x‖ ≤ r
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
 Furthermore, the following extensions are supported:
-* Ellipsoidal norms: `‖x‖ = sqrt(x'Cx)` for any positive definite `C`
-* Linear equality constraints: `Ax = b`
+* [Ellipsoidal norms](#ellipsoidal-norms): `‖x‖ = sqrt(x'Cx)` for any positive definite `C`
+* [Linear equality constraints](#equality-constraints): `Ax = b`
 * Degenerate cases (i.e. the so-called `hard case`)
-* Finding the local-no-global minimizer
-* Solving the related constant-norm (`‖x‖ = r`) problem for all of the cases described above.
+* [Finding the local-no-global minimizer](#finding-local-no-global-minimizers)
+* [Solving the related constant-norm (`‖x‖ = r`) problem](#solving-constant-norm-problems) for all of the cases described above.
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
@@ -49,7 +49,7 @@ trs(P, q, r; kwargs...) -> x, info
 
 **Output**
 * `x::Vector{T}`: The global solution to the TRS
-* `info::TRSInfo{T}`: Info structure. See below for details.
+* `info::TRSInfo{T}`: Info structure. See [below](#the-trsinfo-struct) for details.
 
 **Keywords (optional)**
 * `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular importance is **`tol::T`** which essentially controls the **accuracy** of the returned solutions.
@@ -89,7 +89,7 @@ trs(P, q, r, C, F, b; kwargs...) -> x, info
 ```
 
 ### Finding local-no-global minimizers
-Due to non-convexity, TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:
+Due to non-convexity, a TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:
 ```
 trs(···; compute_local=true, kwargs...) -> x1, x2, info
 ```
@@ -110,7 +110,7 @@ Simply use `trs_boundary` instead of `trs`.
 ### Solving small problems
 Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_boundary_small`, which have identical definitions with `trs` and `trs_boundary` described above, except for `P` which is constrained to be a subtype of `AbstractArray{T}`.
 
-Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (via `eigen`) providing better accuracy and reliability.
+Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (via `eigen`) providing better accuracy, reliability, and speed for small problems.
 
 ### The `TRSInfo` struct
 The returned info structure contains the following 

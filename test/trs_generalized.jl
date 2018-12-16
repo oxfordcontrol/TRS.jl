@@ -9,6 +9,9 @@ rng = MersenneTwister(123)
 for n in [2, 5, 30, 100, 1000]
     P = randn(rng, n, n); P = (P + P')/2;
     q = randn(rng, n)/10
+    C = randn(n, n); C = (C + C')/2;
+    # Make C positive definite
+    C -= 1.01*min(minimum(eigvals(C)), 0)*I
     r = [1e-4 1e-2 1 1000]
     eye = Matrix{Float64}(I, n, n)
     for i = 1:length(r)
@@ -19,8 +22,12 @@ for n in [2, 5, 30, 100, 1000]
             # Make P negative definite
             P = P - 1.1*abs(eigs(P, nev=1, which=:LR)[1][1])*I; 
         end
-        x_g, x_l, info = trs(P, q, r[i], compute_local=true)
-        x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[i])
+        x_g, x_l, info = trs(P, q, r[i], C, compute_local=true)
+        x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, C, r[i])
+        # @show norm(P*x_g + q + info.λ[1]*C*x_g)
+        # @show norm(P*x_matlab + q + λ_matlab*C*x_matlab)
+        # @show info.λ[1], λ_matlab
+        # @show info
         str = "Trs - r:"*string(r[i])
         @testset "$str" begin
             @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
