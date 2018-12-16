@@ -18,7 +18,13 @@ MM1 = [zeros(n) B;B zeros(n)];
 end
 tolhardcase = 1e-4; % tolerance for hard-case
 
+p1 = pcg(A,-a,1e-12); % possible interior solution
+if norm(A*p1+a)/norm(a)<1e-5,
+if p1'*B*p1>=Del^2, p1 = nan;
+end
+else
 p1 = nan;
+end
 
 % This is the core of the code
 [V,lam1] = eigs(@(x)MM0timesx(A,B,a,Del,x),2*n,-MM1,1,'lr');
@@ -41,6 +47,9 @@ Pvect = x1;  %first try only k=1, almost always enough
 x2 = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-12,500);
 if norm((A+lam1*B)*x2+a)/norm(a)>tolhardcase, % large residual, repeat
     for ii = 3*[1:3]
+        if ii > size(A, 1)
+            ii = size(A, 1);
+        end
     [Pvect,DD] = eigs(A,B,ii,'sa');
     x2 = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-8,500);    
     if norm((A+lam1*B)*x2+a)/norm(a) < tolhardcase, break, end

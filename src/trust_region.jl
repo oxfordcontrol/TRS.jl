@@ -75,8 +75,9 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	end
 	D = LinearMap{T}(A, 2*n; ismutating=true)
 
-	(λ, V, _, niter, nmult, _) = eigs(-D, nev=nev, which=:LR,
+	(λ, V, nconv, niter, nmult, _) = eigs(-D, nev=nev, which=:LR,
 			tol=tol, maxiter=maxiter, v0=v0)
+	@assert(nconv >= nev, "Eigensolver has failed to converge.")
 
 	return λ, V, niter, 2*nmult
 end
@@ -86,7 +87,7 @@ function pop_solution!(P, q::AbstractVector{T}, r::T, V::Matrix{Complex{T}}, λ:
 	n = length(q)
 
 	idx = argmax(real(λ))
-	if angle(λ[idx]) >= 1e-6  # No more solutions...
+	if abs(real(λ[idx])) <= 1e6*abs(imag(λ[idx])) # No more solutions...
 		return zeros(T, 0), zeros(T, 0), NaN
 	end
 	l = real(λ[idx]);

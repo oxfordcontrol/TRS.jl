@@ -7,11 +7,18 @@ using Arpack
 
 rng = MersenneTwister(123)
 for n in [2, 5, 30, 100, 5000]
-    P = randn(rng, n, n); P = (P + P')/2
-    q = randn(rng, n)
+    P = randn(rng, n, n); P = (P + P')/2;
+    q = randn(rng, n)/10
     r = [1e-4 1e-2 1 1000]
     eye = Matrix{Float64}(I, n, n)
     for i = 1:length(r)
+        if rand(rng) < .1
+            # Make P positive definite
+            P = P + 1.1*abs(eigs(P, nev=1, which=:SR)[1][1])*I;
+        elseif rand(rng) < .1
+            # Make P negative definite
+            P = P - 1.1*abs(eigs(P, nev=1, which=:LR)[1][1])*I; 
+        end
         x_g, x_l, info = trs(P, q, r[i], compute_local=true)
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[i])
         str = "Trs - r:"*string(r[i])
@@ -30,6 +37,7 @@ for n in [2, 5, 30, 100, 5000]
     v = v/norm(v)
     q = (I - v*v')*q
     x_g, x_l, info = trs(P, q, r[end], compute_local=true)
+    @show info
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
     @testset "Trs - hard case" begin
         @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
