@@ -18,8 +18,7 @@ end
 
 function check_interior!(x1::AbstractVector, x2::AbstractVector, info::TRSinfo, P, q::AbstractVector)
 	if info.λ[1] <= 0 # Global solution is in the interior
-		cg!(x1, P, -q)
-		info.λ[1] = 0
+		x1, info = check_interior!(x1, info, P, q)
 	end
 	if info.λ[2] <= 0
 		# No local-no-global minimiser can exist in the interior

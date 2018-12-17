@@ -7,10 +7,6 @@ subject to  ‖x‖ ≤ r
 ```
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
-ToDo:
-* Remove Polynomials dependency
-* Read about cg's shift in the hardcase
-
 Furthermore, the following extensions are supported:
 * [Ellipsoidal norms](#ellipsoidal-norms): `‖x‖ = sqrt(x'Cx)` for any positive definite `C`
 * [Linear equality constraints](#equality-constraints): `Ax = b`
@@ -105,7 +101,7 @@ Simply use `trs_boundary` instead of `trs`.
 ### Solving small problems
 Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_boundary_small`, which have identical definitions with `trs` and `trs_boundary` described above, except for `P` which is constrained to be a subtype of `AbstractArray{T}`.
 
-Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (via `eigen`) providing better accuracy, reliability, and speed for small problems.
+Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (i.e. `eigen`) providing better accuracy, reliability, and speed for small problems.
 
 ### The `TRSInfo` struct
 The returned info structure contains the following fields:

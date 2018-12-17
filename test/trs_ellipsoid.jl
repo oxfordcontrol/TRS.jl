@@ -22,7 +22,11 @@ for n in [2, 5, 30, 100, 1000]
             # Make P negative definite
             P = P - 1.1*abs(eigs(P, nev=1, which=:LR)[1][1])*I; 
         end
-        x_g, x_l, info = trs(P, q, r[i], C, compute_local=true)
+        if n < 30
+            x_g, x_l, info = trs_small(P, q, r[i], C, compute_local=true)
+        else
+            x_g, x_l, info = trs(P, q, r[i], C, compute_local=true)
+        end
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, C, r[i])
         # @show norm(P*x_g + q + info.λ[1]*C*x_g)
         # @show norm(P*x_matlab + q + λ_matlab*C*x_matlab)
@@ -43,7 +47,11 @@ for n in [2, 5, 30, 100, 1000]
     λ_min, v, _ = eigs(-P, nev=1, which=:LR)
     v = v/norm(v)
     q = (I - v*v')*q
-    x_g, x_l, info = trs(P, q, r[end], compute_local=true)
+    if n < 30
+        x_g, x_l, info = trs_small(P, q, r[end], compute_local=true)
+    else
+        x_g, x_l, info = trs(P, q, r[end], compute_local=true)
+    end
     @show info
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
     @testset "Trs - hard case" begin

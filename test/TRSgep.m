@@ -18,7 +18,7 @@ MM1 = [zeros(n) B;B zeros(n)];
 end
 tolhardcase = 1e-4; % tolerance for hard-case
 
-p1 = pcg(A,-a,1e-12,500); % possible interior solution
+[p1, flag] = pcg(A,-a,1e-12,500); % possible interior solution
 if norm(A*p1+a)/norm(a)<1e-5,
 if p1'*B*p1>=Del^2, p1 = nan;
 end
@@ -40,18 +40,18 @@ end
     if x'*a>0, x = -x; end % take correct sign
     
 if normx < tolhardcase % hard case
-disp(['hard case!',num2str(normx)])
+% disp(['hard case!',num2str(normx)])
 x1 = V(length(A)+1:end);
 alpha1 = lam1;
 Pvect = x1;  %first try only k=1, almost always enough
-x2 = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-12,500);
+[x2, flag] = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-12,500);
 if norm((A+lam1*B)*x2+a)/norm(a)>tolhardcase, % large residual, repeat
     for ii = 3*[1:5]
         if ii > size(A, 1)
             ii = size(A, 1);
         end
     [Pvect,DD] = eigs(A,B,ii,'sa');
-    x2 = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-8,500);    
+    [x2, flag] = pcg(@(x)pcgforAtilde(A,B,lam1,Pvect,alpha1,x),-a,1e-8,500);    
     if norm((A+lam1*B)*x2+a)/norm(a) < tolhardcase, break, end
     end
 end
