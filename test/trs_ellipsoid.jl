@@ -30,7 +30,7 @@ for n in [2, 5, 30, 100, 1000]
         # @show norm(P*x_matlab + q + λ_matlab*C*x_matlab)
         # @show info.λ[1], λ_matlab
         # @show info
-        str = "Trs - r:"*string(r[i])
+        str = "Ellipsoidal Trs - r:"*string(r[i])
         @testset "$str" begin
             @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
             if size(x_matlab, 2) > 1
@@ -51,7 +51,7 @@ for n in [2, 5, 30, 100, 1000]
         x_g, x_l, info = trs(P, q, r[end], compute_local=true)
     end
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
-    @testset "Trs - hard case" begin
+    @testset "Ellipsoidal Trs - hard case" begin
         @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
         if size(x_matlab, 2) > 1
             diff = min(norm(x_g - x_matlab[:, 1]), norm(x_g - x_matlab[:, 2]))
