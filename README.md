@@ -68,7 +68,7 @@ trs(P, q, r, C; kwargs...) -> x, info
 which is the same as `trs(P, q, r)` except for the input argument
 * `C::AbstractMatrix{T}`: a positive definite, symmetric, matrix that defines the ellipsoidal norm `‖x‖ := sqrt(x'Cx)`.
 
-If `C` is known to be well conditioned it might be preferable to perform a change of variables `y = cholesky(C)\x` and use the standard `trs(P, q, r)` instead.
+Note that if `C` is known to be well conditioned it might be preferable to perform a change of variables `y = cholesky(C)\x` and use the standard `trs(P, q, r)` instead.
 
 ### Equality constraints
 The problem
@@ -82,11 +82,6 @@ where `A` is a "fat", full row-rank matrix, can be solved as
 trs(P, q, r, A, b; kwargs...) -> x, info
 ```
 which is the same as `trs(P, q, r)` except for the input arguments `A::AbstractMatrix{T}` and `b::AbstractVector{T}`
-
-Solution of problems involving both equality constraints and ellipsoidal norms can be solved with
-```
-trs(P, q, r, C, A, b; kwargs...) -> x, info
-```
 
 ### Finding local-no-global minimizers
 Due to non-convexity, a TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:

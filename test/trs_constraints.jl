@@ -48,8 +48,8 @@ for n in [3, 5, 10, 30, 100, 1000]
 
             r_ = sqrt(r[i]^2 - norm(x0)^2)
 
-            x_g, x_l, info = trs_boundary(P, q, r[i], A, b, compute_local=true)
-            x_g_reduced, x_l_reduced, info_reduced = trs_boundary(P_, q_, r_, compute_local=true)
+            x_g, x_l, info = trs(P, q, r[i], A, b, compute_local=true)
+            x_g_reduced, x_l_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
             str = "Constrained trs - r:"*string(r[i])
             @testset "$str" begin
                 @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
@@ -66,8 +66,8 @@ for n in [3, 5, 10, 30, 100, 1000]
     v = v/norm(v)
     q = (I - v*v')*q
     q_ = N'*(q + P*x0)
-    x_g, x_l, info = trs_boundary(P, q, r[end], A, b, compute_local=true)
-    x_g_reduced, x_l_reduced, info_reduced = trs_boundary(P_, q_, r_, compute_local=true)
+    x_g, x_l, info = trs(P, q, r[end], A, b, compute_local=true)
+    x_g_reduced, x_l_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
     @testset "Constrainted trs - hard case" begin
         @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
         @test norm(x_g - N*x_g_reduced - x0) <= 1e-3*r[end]

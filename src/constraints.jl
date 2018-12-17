@@ -1,6 +1,12 @@
 function trs_boundary(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVector{T}; kwargs...) where {T}
+	project!, F = generate_nullspace_projector(A)
+	x = find_feasible_point(b, r, project!, F)
+	return trs_boundary(P, q, r, project!, x; kwargs...)
+end
+
+function generate_nullspace_projector(A::AbstractMatrix{T}) where T
 	F = factorize([I A'; A 0*I]) # KKT matrix
-	n = length(q)
+	n = size(A, 2)
 	x_ = zeros(size(F, 1))
 	y_ = zeros(size(F, 1))
 	function project!(x::AbstractVector{T})
@@ -8,6 +14,11 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::Ab
 		ldiv!(y_, F, x_)
 		copyto!(x, view(y_, 1:n))
 	end
+	return project!, F
+end
+
+function find_feasible_point(b::AbstractVector{T}, r::T, project!, F::Factorization{T}) where T
+	n = size(F, 1) - length(b)
 	x = (F\[zeros(n); b])[1:n] # x is the minimizer of ‖x‖ with Ax = b
 	@assert(norm(x) <= r, "The problem is infeasible.")
 	d = project!(randn(n)) # Find a direction in the nullspace of A
@@ -16,7 +27,7 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::Ab
 	@assert(isreal(alpha), "The problem is infeasible.")
 	x += alpha[1]*d # Now ‖x‖ = r
 
-	return trs_boundary(P, q, r, project!, x; kwargs...)
+	return x
 end
 
 function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector{T}; kwargs...) where {T}
@@ -58,4 +69,39 @@ function shift_output(x1, info, x0, λ_max)
 	x1 .+= x0
 	info.λ .-= λ_max
 	return x1, info
+end
+
+function trs(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVector{T}; kwargs...) where {T}
+	project!, F = generate_nullspace_projector(A)
+	x = find_feasible_point(b, r, project!, F)
+	output = trs_boundary(P, q, r, project!, x; kwargs...)
+
+	return check_interior!(output..., P, q, project!)
+end
+
+function check_interior!(x1::AbstractVector{T}, info::TRSinfo, P, q::AbstractVector{T}, project!) where T
+	if info.λ[1] <= 0 # Global solution is in the interior
+		n = length(x1)
+		P_projected = LinearMap{T}((y, x) -> project!(mul!(y, P, x)), n;
+						  ismutating=true, issymmetric=true)
+		x0 = x1 - project!(copy(x1))
+		q_projected = project!(q + P*x0)
+		x1 .-= x0
+		cg!(x1, P_projected, -q_projected)
+		x1 .+= x0
+		info.λ[1] = 0
+	end
+	return x1, info
+end
+
+function check_interior!(x1::AbstractVector{T}, x2::AbstractVector{T}, info::TRSinfo, P, q::AbstractVector{T}, project!) where T
+	if info.λ[1] <= 0 # Global solution is in the interior
+		x1, info = check_interior!(x1, info, P, q, project!)
+	end
+	if info.λ[2] <= 0
+		# No local-no-global minimiser can exist in the interior
+		x2 = []
+		info.λ[2] = NaN
+	end
+	return x1, x2, info
 end
