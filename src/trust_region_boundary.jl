@@ -9,8 +9,8 @@ mutable struct TRSinfo
 	end
 end
 
-function trs_boundary(P, q::AbstractVector{T}, r::T, C::AbstractArray; kwargs...) where {T}
-	check_inputs(P, q, r)
+function trs_boundary(P, q::AbstractVector{T}, r::T, C::AbstractArray{T}; kwargs...) where {T}
+	check_inputs(P, q, r, C)
 	return trs_boundary((nev; kw...) -> gen_eigenproblem(P, q, r, C, nev; kw...),
 		   (λ, V; kw...) -> pop_solution!(P, q, r, C, V, λ; kw...); kwargs...)
 end
@@ -46,10 +46,15 @@ function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
 	end
 end
 
-function check_inputs(P, q::AbstractVector{T}, r::T) where {T}
+function check_inputs(P, q::AbstractVector{T}, r::T, C) where {T}
 	@assert(issymmetric(P), "The cost matrix must be symmetric.")
 	@assert(eltype(P) == T, "Inconsistent element types.")
 	@assert(size(P, 1) == size(P, 2) == length(q), "Inconsistent matrix dimensions.")
+end
+
+function check_inputs(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}) where {T}
+	check_inputs(P, q, r)
+	@assert(issymmetric(C), "The norm must be defined by a symmetric positive definite matrix.")
 end
 
 function pop_solution!(P, q::AbstractVector{T}, r::T, C, V::Matrix{Complex{T}}, λ::Vector{Complex{T}};
