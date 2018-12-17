@@ -1,6 +1,6 @@
 # TRS.jl: Solving the Trust Region Subproblem
 
-This package solves the Trust-Region subproblem:
+This package solves the Trust-Region Subproblem:
 ```
 minimize    ½x'Px + q'x
 subject to  ‖x‖ ≤ r
@@ -92,7 +92,7 @@ Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding 
 **In the hard case:**  
 `x2` corresponds to a second global minimizer.
 
-The user can detect the hard case via the returned symbol in `info.status`.
+The user can detect the hard case via the `info.hard_case` flag.
 
 
 ### Solving constant-norm problems
