@@ -46,7 +46,7 @@ function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
 	end
 end
 
-function check_inputs(P, q::AbstractVector{T}, r::T, C) where {T}
+function check_inputs(P, q::AbstractVector{T}, r::T) where {T}
 	@assert(issymmetric(P), "The cost matrix must be symmetric.")
 	@assert(eltype(P) == T, "Inconsistent element types.")
 	@assert(size(P, 1) == size(P, 2) == length(q), "Inconsistent matrix dimensions.")

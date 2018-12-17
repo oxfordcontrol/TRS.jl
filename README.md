@@ -7,6 +7,10 @@ subject to  ‖x‖ ≤ r
 ```
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
+ToDo:
+* Remove Polynomials dependency
+* Read about cg's shift in the hardcase
+
 Furthermore, the following extensions are supported:
 * [Ellipsoidal norms](#ellipsoidal-norms): `‖x‖ = sqrt(x'Cx)` for any positive definite `C`
 * [Linear equality constraints](#equality-constraints): `Ax = b`
@@ -64,28 +68,24 @@ trs(P, q, r, C; kwargs...) -> x, info
 which is the same as `trs(P, q, r)` except for the input argument
 * `C::AbstractMatrix{T}`: a positive definite, symmetric, matrix that defines the ellipsoidal norm `‖x‖ := sqrt(x'Cx)`.
 
-**N.B.**: `trs(P, q, r, C)` solves a considerably different eigenproblem (a generalized eigenvalue problem as compared to the unsymmetric standard eigenproblem of `trs(P, q, r)`). The user might prefer to perform a change of variables `y = cholesky(C)\x` and use `trs(P, q, r)` in cases where:
-* Repeated problems need to be solved with the same `C`; and/or
-* A high accuracy solution is not required.
+If `C` is known to be well conditioned it might be preferable to perform a change of variables `y = cholesky(C)\x` and use the standard `trs(P, q, r)` instead.
 
 ### Equality constraints
 The problem
 ```
 minimize    ½x'Px + q'x
 subject to  ‖x‖ ≤ r
-            Ax = b
+            Ax = b,
 ```
-can be solved as
+where `A` is a "fat", full row-rank matrix, can be solved as
 ```
-trs(P, q, r, F, b; kwargs...) -> x, info
+trs(P, q, r, A, b; kwargs...) -> x, info
 ```
-which is the same as `trs(P, q, r)` except for the input arguments `b::AbstractVector{T}` and `F` which can either be
-* `F::Factorization{T}`: a factorization of the matrix `[I A'; A 0]`; or
-* `F::function`: a mutating function `F(y, z)` which writes into `y` the projection of `z` into the nullspace of `A`.
+which is the same as `trs(P, q, r)` except for the input arguments `A::AbstractMatrix{T}` and `b::AbstractVector{T}`
 
 Solution of problems involving both equality constraints and ellipsoidal norms can be solved with
 ```
-trs(P, q, r, C, F, b; kwargs...) -> x, info
+trs(P, q, r, C, A, b; kwargs...) -> x, info
 ```
 
 ### Finding local-no-global minimizers
@@ -113,8 +113,8 @@ Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_bou
 Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (via `eigen`) providing better accuracy, reliability, and speed for small problems.
 
 ### The `TRSInfo` struct
-The returned info structure contains the following 
+The returned info structure contains the following fields:
 * `hard_case::Bool` Flag indicating if the problem was detected to be in the hard-case.
 * `niter::Int`:  Number of iterations of the eigensolver
 * `nmul::Int`:   Number of multiplications with `P` requested by the eigensolver.
-* `λ::Vector{T}` Lagrange Multiplier(s) of the solution(s).
+* `λ::Vector` Lagrange Multiplier(s) of the solution(s).
