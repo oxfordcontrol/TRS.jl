@@ -1,5 +1,3 @@
-include("../src/TRS.jl")
-using Main.TRS
 using Test, Random
 using LinearAlgebra
 using MATLAB

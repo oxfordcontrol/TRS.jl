@@ -1,5 +1,3 @@
-include("../src/TRS.jl")
-using Main.TRS
 using Test, Random
 using LinearAlgebra
 using MATLAB
@@ -45,7 +43,6 @@ for n in [2, 5, 30, 100, 1000]
     else
         x_g, x_l, info = trs(P, q, r[end], compute_local=true)
     end
-    @show info
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
     @testset "Trs - hard case" begin
         @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
