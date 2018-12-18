@@ -24,6 +24,9 @@ for n in [2, 5, 30, 100, 1000]
         end
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[i])
         str = "Trs - r:"*string(r[i])
+        @show norm(P*x_g + q + info.λ[1]*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*x_matlab[:, 1])
+        # @show info.λ[1] + (dot(x_g, P*x_g) + dot(q,x_g))/r[end]^2
+        # @show info.λ[1], λ_matlab
         @testset "$str" begin
             @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
             if size(x_matlab, 2) > 1
@@ -44,6 +47,9 @@ for n in [2, 5, 30, 100, 1000]
         x_g, x_l, info = trs(P, q, r[end], compute_local=true)
     end
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
+    @show norm(P*x_g + q + info.λ[1]*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*x_matlab[:, 1])
+    # @show info.λ[1] + (dot(x_g, P*x_g) + dot(q,x_g))/r[end]^2
+    # @show info.λ[1], λ_matlab
     @testset "Trs - hard case" begin
         @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
         if size(x_matlab, 2) > 1

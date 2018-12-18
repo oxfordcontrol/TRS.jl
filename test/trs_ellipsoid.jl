@@ -26,10 +26,9 @@ for n in [2, 5, 30, 100, 1000]
             x_g, x_l, info = trs(P, q, r[i], C, compute_local=true)
         end
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, C, r[i])
-        # @show norm(P*x_g + q + info.λ[1]*C*x_g)
-        # @show norm(P*x_matlab + q + λ_matlab*C*x_matlab)
+        @show norm(P*x_g + q + info.λ[1]*C*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*C*x_matlab[:, 1])
+        # @show info.λ[1] + (dot(x_g, P*x_g) + dot(q,x_g))/r[i]^2
         # @show info.λ[1], λ_matlab
-        # @show info
         str = "Ellipsoidal Trs - r:"*string(r[i])
         @testset "$str" begin
             @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
@@ -46,11 +45,14 @@ for n in [2, 5, 30, 100, 1000]
     v = v/norm(v)
     q = (I - v*v')*q
     if n < 30
-        x_g, x_l, info = trs_small(P, q, r[end], compute_local=true)
+        x_g, x_l, info = trs_small(P, q, r[end], C, compute_local=true)
     else
-        x_g, x_l, info = trs(P, q, r[end], compute_local=true)
+        x_g, x_l, info = trs(P, q, r[end], C, compute_local=true)
     end
-    x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
+    x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, C, r[end])
+    @show norm(P*x_g + q + info.λ[1]*C*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*C*x_matlab[:, 1])
+    # @show info.λ[1] + (dot(x_g, P*x_g) + dot(q,x_g))/r[end]^2
+    # @show info.λ[1], λ_matlab
     @testset "Ellipsoidal Trs - hard case" begin
         @test info.λ[1] - λ_matlab <= 1e-6*λ_matlab
         if size(x_matlab, 2) > 1
