@@ -16,7 +16,7 @@ Furthermore, the following extensions are supported:
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
-If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://no-link-yet.com) package.
+If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://github.com/oxfordcontrol/eTRS.jl) package.
 
 The main reference for this package is
 ```
