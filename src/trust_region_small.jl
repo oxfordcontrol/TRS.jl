@@ -8,12 +8,24 @@ function trs_small(P::AbstractMatrix{T}, q::AbstractVector{T}, r::T, C::Abstract
 	return check_interior!(output..., P, q)
 end
 
-function check_interior!(x1::AbstractVector, info::TRSinfo, P, q::AbstractVector)
+function check_interior_small!(x1::AbstractVector, info::TRSinfo, P, q::AbstractVector)
 	if info.λ[1] <= 0 # Global solution is in the interior
 		x1 = -P\q
 		info.λ[1] = 0
 	end
 	return x1, info
+end
+
+function check_interior_small!(x1::AbstractVector, x2::AbstractVector, info::TRSinfo, P, q::AbstractVector)
+	if info.λ[1] <= 0 # Global solution is in the interior
+		x1, info = check_interior_small!(x1, info, P, q)
+	end
+	if info.λ[2] <= 0
+		# No local-no-global minimiser can exist in the interior
+		x2 = []
+		info.λ[2] = NaN
+	end
+	return x1, x2, info
 end
 
 function trs_boundary_small(P::AbstractMatrix{T}, q::AbstractVector{T}, r::T, C::AbstractArray{T}; kwargs...) where T
