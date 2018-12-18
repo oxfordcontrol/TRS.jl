@@ -9,7 +9,7 @@ mutable struct TRSinfo
 	end
 end
 
-function trs_boundary(P, q::AbstractVector{T}, r::T, C::AbstractArray{T}; kwargs...) where {T}
+function trs_boundary(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}; kwargs...) where {T}
 	check_inputs(P, q, r, C)
 	return trs_boundary((nev; kw...) -> gen_eigenproblem(P, q, r, C, nev; kw...),
 		   (λ, V; kw...) -> pop_solution!(P, q, r, C, V, λ; kw...); kwargs...)

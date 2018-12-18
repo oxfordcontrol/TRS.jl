@@ -99,7 +99,7 @@ The user can detect the hard case via the `info.hard_case` flag.
 Simply use `trs_boundary` instead of `trs`.
 
 ### Solving small problems
-Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_boundary_small`, which have identical definitions with `trs` and `trs_boundary` described above, except for `P` which is constrained to be a subtype of `AbstractArray{T}`.
+Small problems (say for `n < 20`) should be solved with `trs_small` and `trs_boundary_small`, which have identical definitions with `trs` and `trs_boundary` described above, except for `P` which is constrained to be a subtype of `AbstractMatrix{T}`.
 
 Internally `trs_small`/`trs_boundary_small` use direct eigensolvers (i.e. `eigen`) providing better accuracy, reliability, and speed for small problems.
 

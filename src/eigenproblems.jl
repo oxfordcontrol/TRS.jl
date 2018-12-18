@@ -27,7 +27,7 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	return λ, V, niter, 2*nmult
 end
 
-function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractArray, nev=1;
+function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=1;
 	tol=0.0, maxiter=300, v0=zeros((0,))) where {T}
 	"""
 	Calculates rightmost eigenvalues/vectors of
@@ -84,7 +84,7 @@ function eigenproblem_small(P::AbstractMatrix, q::AbstractVector{T}, r::T, nev=1
 	return λ, V, 0, 0
 end
 
-function gen_eigenproblem_small(P::AbstractMatrix, q::AbstractVector{T}, r::T, C::AbstractArray, nev=1) where {T}
+function gen_eigenproblem_small(P::AbstractMatrix, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=1) where {T}
 	"""
 	Calculates rightmost eigenvalues/vectors of
 

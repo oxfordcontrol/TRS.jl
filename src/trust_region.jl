@@ -3,7 +3,7 @@ function trs(P, q::AbstractVector{T}, r::T; kwargs...) where {T}
 	return check_interior!(output..., P, q)
 end
 
-function trs(P, q::AbstractVector{T}, r::T, C::AbstractArray{T}; kwargs...) where {T}
+function trs(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}; kwargs...) where {T}
 	output = trs_boundary(P, q, r, C; kwargs...)
 	return check_interior!(output..., P, q)
 end
