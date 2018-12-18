@@ -10,7 +10,7 @@ end
 
 function check_interior!(x1::AbstractVector, info::TRSinfo, P, q::AbstractVector)
 	if info.λ[1] <= 0 # Global solution is in the interior
-		cg!(x1, P, -q)
+		cg!(x1, P, -q, tol=(eps(real(eltype(q)))/2)^(2/3))
 		info.λ[1] = 0
 	end
 	return x1, info
