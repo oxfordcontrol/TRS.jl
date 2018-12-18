@@ -53,7 +53,7 @@ trs(P, q, r; kwargs...) -> x, info
 
 **Keywords (optional)**
 * `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular importance is **`tol::T`** which essentially controls the **accuracy** of the returned solutions.
-* `tol_hard::T=2e-7`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
+* `tol_hard=2e-7`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
 * `compute_local::Bool=False`: Whether the local-no-global solution should be calculated. More details [below](#finding-local-no-global-minimizers).
 
 ### Ellipsoidal Norms
