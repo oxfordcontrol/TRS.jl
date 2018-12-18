@@ -49,7 +49,7 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	λ_max = max(eigs(P, nev=1, which=:LR)[1][1], 0)
 	function p(y::AbstractVector{T}, x::AbstractVector{T}) where {T}
 		mul!(y, P, x)
-		# Substracting λ_max makes P negative definite which helps eigs for in the constrained case
+		# Substracting λ_max makes P negative definite which helps eigs for the constrained case
 		axpy!(-λ_max, x, y)
 		project!(y) # Project to the nullspace of A
 	end
