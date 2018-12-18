@@ -54,7 +54,7 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	r_ = norm(x - x0)
 	output = trs_boundary((nev; kw...) -> eigenproblem(P_, q_, r_, nev;
 			v0=[project!(randn(n)); project!(randn(n))], kw...,),
-			(λ, V; kw...) -> pop_solution!(P_, q_, r_, I, V, λ; kw...); kwargs...)
+			(λ, V; kw...) -> pop_solution!(λ, V, P_, q_, r_, I; kw...); kwargs...)
 	return shift_output(output..., x0, λ_max)
 end
 
