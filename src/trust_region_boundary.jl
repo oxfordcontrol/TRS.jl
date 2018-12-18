@@ -83,7 +83,7 @@ function pop_solution!(P, q::AbstractVector{T}, r::T, C, V::Matrix{Complex{T}}, 
 	else
 		y, residual = extract_solution_hard_case(P, q, C, l, reshape(v1/norm(v1), n, 1))
 		nullspace_dim = 3
-		while residual >= tol_hard*norm(q) && nullspace_dim <= 20 
+		while residual >= tol_hard*norm(q) && nullspace_dim <= min(12, length(y))
 			κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR)
 			y, residual = extract_solution_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
 			nullspace_dim *= 2
