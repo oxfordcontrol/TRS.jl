@@ -22,10 +22,10 @@ function trs_boundary(P, q::AbstractVector{T}, r::T; kwargs...) where {T}
 end
 
 function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
-	compute_local=false, tol_hard=1e-4, kwargs...)
+	compute_local=false, tol_hard=2e-7, kwargs...)
 
 	if compute_local
-		nev=2  # We will need the two rightmost eigenvalues
+		nev=3  # We will need the two rightmost eigenvalues. Requesting three seems to make eigs more robust.
 	else
 		nev=1  # We will only need the rightmost eigenvalue
 	end
@@ -37,7 +37,7 @@ function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
 	else
 		if isempty(x2) # i.e. we are not in the hard-case
 			hard_case = false
-			x2, _, λ2 = pop_solution!(λ, V) # Pop local-no-global minimizer.
+			x2, _, λ2 = pop_solution!(λ, V; tol_hard=tol_hard) # Pop local-no-global minimizer.
 		else
 			λ2 = λ1
 			hard_case = true
@@ -58,7 +58,7 @@ function check_inputs(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}) where
 end
 
 function pop_solution!(P, q::AbstractVector{T}, r::T, C, V::Matrix{Complex{T}}, λ::Vector{Complex{T}};
-	tol_hard=1e-4) where {T}
+	tol_hard) where {T}
 	n = length(q)
 
 	idx = argmax(real(λ))
@@ -67,7 +67,13 @@ function pop_solution!(P, q::AbstractVector{T}, r::T, C, V::Matrix{Complex{T}}, 
 	end
 	l = real(λ[idx]);
 	λ[idx] = -Inf  # This ensures that the next pop_solution! would not get the same solution.
-	v = real(view(V, :, idx)) + imag(view(V, :, idx))
+	complex_v = view(V, :, idx)
+	if norm(real(complex_v)) > norm(imag(complex_v))
+		v = real(complex_v)
+	else
+		v = imag(complex_v)  # Sometimes the retuned eigenvector is complex
+	end
+	v ./= norm(v)
 	v1 = view(v, 1:n); v2 = view(v, n+1:2*n)
 
 	norm_v1 = sqrt(dot(v1, C*v1))
@@ -91,7 +97,7 @@ function pop_solution!(P, q::AbstractVector{T}, r::T, C, V::Matrix{Complex{T}}, 
 end
 
 function extract_solution_hard_case(P, q::AbstractVector{T}, C, λ::T, W::AbstractMatrix{T}) where {T}
-	D = LinearMap{T}((x) -> P*x + λ*(C*(x + W*(W'*x))), length(q); issymmetric=true)
-	y = cg(-D, q)
+	D = LinearMap{T}((x) -> P*x + λ*(C*x + W*(W'*x)), length(q); issymmetric=true)
+	y = cg(-D, q, tol=(eps(real(eltype(q)))/2)^(2/3))
 	return y, norm(P*y + λ*(C*y) + q)
 end

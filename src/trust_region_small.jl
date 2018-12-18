@@ -41,7 +41,7 @@ function trs_boundary_small(P::AbstractMatrix{T}, q::AbstractVector{T}, r::T; kw
 end
 
 function pop_solution_small!(P::AbstractMatrix{T}, q::AbstractVector{T}, r::T, C, V, λ;
-	tol_hard=1e-4) where {T}
+	tol_hard::T) where {T}
 	n = length(q)
 
 	idx = argmax(real(λ))

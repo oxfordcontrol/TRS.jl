@@ -22,13 +22,14 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 
 	(λ, V, nconv, niter, nmult, _) = eigs(-D, nev=nev, which=:LR,
 	tol=tol, maxiter=maxiter, v0=v0)
-	@assert(nconv >= nev, "Eigensolver has failed to converge.")
+	@assert(nconv >= min(nev, 2), "Eigensolver has failed to converge.
+		Try decreasing tolerance or changing parameters of eigs.")
 
 	return λ, V, niter, 2*nmult
 end
 
 function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=1;
-	tol=0.0, maxiter=300, v0=zeros((0,))) where {T}
+	tol=0.0, maxiter=500, v0=zeros((0,))) where {T}
 	"""
 	Calculates rightmost eigenvalues/vectors of
 
@@ -50,7 +51,10 @@ function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=
 	end
 	D = LinearMap{T}(A, 2*n; ismutating=true)
 
-	(λ, V, _, niter, nmult, _) = eigs(-D, [C 0*I; 0*I C], nev=nev, which=:LR, tol=tol)
+	(λ, V, nconv, niter, nmult, _) = eigs(-D, [C 0*I; 0*I C], nev=nev, which=:LR, tol=tol)
+	@assert(nconv >= min(nev, 2), "Eigensolver has failed to converge.
+		Try decreasing tolerance or changing parameters of eigs.")
+
 	return λ, V, niter, 2*nmult
 end
 
