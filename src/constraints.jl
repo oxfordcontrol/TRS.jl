@@ -34,11 +34,11 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	"""
 	Solves the TRS problem
 	minimize    ½x'Px + q'x
-	subject to  ‖x‖ ≤ r
+	subject to  ‖x‖ = r
 				Ax = b.
 
-	A and b are replaced by project! and x, where:
-	- project!(x) project x to the nullspace of A; and
+	Instead of passing A and b it is required to pass project! and x, where:
+	- project!(x) projects (inplace) x to the nullspace of A; and
 	- x is a point with ‖x‖ = r and Ax = b
 	"""
 	n = length(q)
