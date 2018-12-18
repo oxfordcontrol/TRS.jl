@@ -5,6 +5,10 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::Ab
 end
 
 function generate_nullspace_projector(A::AbstractMatrix{T}) where T
+	"""
+	Generates a function project!(x) That projects x into the nullspace of A
+	Also returns the factorization of the KKT matrix[I A'; A 0]
+	"""
 	F = factorize([I A'; A 0*I]) # KKT matrix
 	n = size(A, 2)
 	x_ = zeros(size(F, 1))
@@ -45,10 +49,11 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	λ_max = max(eigs(P, nev=1, which=:LR)[1][1], 0)
 	function p(y::AbstractVector{T}, x::AbstractVector{T}) where {T}
 		mul!(y, P, x)
+		# Substracting λ_max makes P negative definite which helps eigs for in the constrained case
 		axpy!(-λ_max, x, y)
-		project!(y)
+		project!(y) # Project to the nullspace of A
 	end
-	x0 = x - project!(copy(x))
+	x0 = x - project!(copy(x)) # x0 is perpendicular to the nullspace of A
 	P_ = LinearMap{T}(p, n; ismutating=true, issymmetric=true)
 	q_ = project!(q + P*x0 - λ_max*x0)
 	r_ = norm(x - x0)
@@ -60,7 +65,9 @@ end
 
 function shift_output(x1, x2, info, x0, λ_max)
 	x1 .+= x0
-	x2 .+= x0
+	if !isempty(x2)
+		x2 .+= x0
+	end
 	info.λ .-= λ_max
 	return x1, x2, info
 end
@@ -76,32 +83,15 @@ function trs(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVec
 	x = find_feasible_point(b, r, project!, F)
 	output = trs_boundary(P, q, r, project!, x; kwargs...)
 
-	return check_interior!(output..., P, q, project!)
-end
-
-function check_interior!(x1::AbstractVector{T}, info::TRSinfo, P, q::AbstractVector{T}, project!) where T
-	if info.λ[1] <= 0 # Global solution is in the interior
-		n = length(x1)
-		P_projected = LinearMap{T}((y, x) -> project!(mul!(y, P, x)), n;
-						  ismutating=true, issymmetric=true)
-		x0 = x1 - project!(copy(x1))
-		q_projected = project!(q + P*x0)
-		x1 .-= x0
-		cg!(x1, P_projected, -q_projected)
-		x1 .+= x0
-		info.λ[1] = 0
-	end
-	return x1, info
-end
-
-function check_interior!(x1::AbstractVector{T}, x2::AbstractVector{T}, info::TRSinfo, P, q::AbstractVector{T}, project!) where T
-	if info.λ[1] <= 0 # Global solution is in the interior
-		x1, info = check_interior!(x1, info, P, q, project!)
-	end
-	if info.λ[2] <= 0
-		# No local-no-global minimiser can exist in the interior
-		x2 = []
-		info.λ[2] = NaN
-	end
-	return x1, x2, info
+ 	# x0 is perpendicular to the nullspace of A
+	x0 = output[1] - project!(copy(output[1]))
+	# We remove x0 from the output(s) so that they belong to the nullspace of A
+	shift_output(output..., -x0, 0)
+	# Define projected matrices (on the nullspace of A) for the cg
+	P_projected = LinearMap{T}((y, x) -> project!(mul!(y, P, x)), length(x0);
+		ismutating=true, issymmetric=true)
+	q_projected = project!(q + P*x0)
+	# Check interior solutions (if necessary) and add back x0
+	output = check_interior!(output..., P_projected, q_projected)
+	return shift_output(output..., x0, 0)
 end
