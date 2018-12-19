@@ -4,8 +4,8 @@ mutable struct TRSinfo
 	nmul::Int  # Number of multiplication with P in eigs
 	λ::Vector  # Lagrange Multiplier(s)
 
-	function TRSinfo(is_hard::Bool, niter::Int, nmul::Int, λ::Vector)
-		new(is_hard, niter, nmul, λ)
+	function TRSinfo(hard_case::Bool, niter::Int, nmul::Int, λ::Vector)
+		new(hard_case, niter, nmul, λ)
 	end
 end
 

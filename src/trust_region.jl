@@ -9,7 +9,7 @@ function trs(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}; kwargs...) whe
 end
 
 function check_interior!(x1::AbstractVector, info::TRSinfo, P, q::AbstractVector; direct=false)
-	if info.λ[1] <= 0 # Global solution is in the interior
+	if info.λ[1] < 0 # Global solution is in the interior
 		if !direct
 			cg!(x1, P, -q, tol=(eps(real(eltype(q)))/2)^(2/3))
 		else
@@ -22,7 +22,7 @@ end
 
 function check_interior!(x1::AbstractVector, x2::AbstractVector, info::TRSinfo, P, q::AbstractVector; direct=false)
 	x1, info = check_interior!(x1, info, P, q; direct=direct)
-	if info.λ[2] <= 0
+	if info.λ[2] < 0
 		# No local-no-global minimiser can exist in the interior
 		x2 = []
 		info.λ[2] = NaN
