@@ -1,5 +1,5 @@
 mutable struct TRSinfo
-	is_hard::Bool  # Flag indicating if we are in the hard case
+	hard_case::Bool  # Flag indicating if we are in the hard case
 	niter::Int # Number of iterations in eigs
 	nmul::Int  # Number of multiplication with P in eigs
 	λ::Vector  # Lagrange Multiplier(s)
@@ -120,21 +120,6 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 	x2 = y + α[2]*v2
 
 	return x1, x2
-end
-
-function pop_rightmost_eigenvector!(λ, V)
-	idx = argmax(real(λ))
-	l = λ[idx];
-	λ[idx] = -Inf  # This ensures that the next pop_solution! would not get the same solution.
-	complex_v = view(V, :, idx)
-	if norm(real(complex_v)) > norm(imag(complex_v))
-		v = real(complex_v)
-	else
-		v = imag(complex_v)  # Sometimes the retuned eigenvector is complex
-	end
-	v ./= norm(v)
-
-	return l, v
 end
 
 function cg_hard_case(P, q::AbstractVector{T}, C, λ::T, W::AbstractMatrix{T}) where {T}
