@@ -28,7 +28,6 @@ function find_feasible_point(b::AbstractVector{T}, r::T, project!, F::Factorizat
 	d = project!(randn(n)) # Find a direction in the nullspace of A
 	# Calculate alpha such that ‖x + alpha*d‖ = r
 	alpha = roots(Poly([norm(x)^2 - r^2, 2*d'*x, norm(d)^2]))
-	@assert(isreal(alpha), "The problem is infeasible.")
 	x += alpha[1]*d # Now ‖x‖ = r
 
 	return x
@@ -39,7 +38,7 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	Solves the TRS problem
 	minimize    ½x'Px + q'x
 	subject to  ‖x‖ = r
-				Ax = b.
+                Ax = b.
 
 	Instead of passing A and b it is required to pass project! and x, where:
 	- project!(x) projects (inplace) x to the nullspace of A; and
