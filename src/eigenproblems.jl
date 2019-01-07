@@ -1,5 +1,5 @@
 function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
-	tol=0.0, maxiter=300, v0=zeros((0,))) where {T}
+	tol=1e-13, maxiter=600, v0=zeros((0,))) where {T}
 	"""
 	Calculates rightmost eigenvalues/vectors of
 
@@ -17,15 +17,16 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 		mul!(y2, P, x2)
 		axpy!(-dot(q, x2)/r^2, q, y1)
 		axpy!(-one(T), x1, y2)
+		return y
 	end
-	D = LinearMap{T}(A, 2*n; ismutating=true)
 
-	(λ, V, nconv, niter, nmult, _) = eigs(-D, nev=nev, which=:LR,
-	tol=tol, maxiter=maxiter, v0=v0)
-	@assert(nconv >= min(nev, 2), "Eigensolver has failed to converge.
-		Try decreasing tolerance or changing parameters of eigs.")
+	if length(v0) == 0
+		v0 = randn(2*n)
+	end
+	λ, V, info = eigsolve(x -> -A(similar(x), x), v0, howmany=nev, which=:LR, maxiter=maxiter, tol=tol)
+	@assert info.converged >= nev
 
-	return λ, V, niter, 2*nmult
+	return λ, hcat(V...), info.numiter, 2*info.numops
 end
 
 function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=1;
@@ -95,7 +96,7 @@ function gen_eigenproblem_small(P::AbstractMatrix, q::AbstractVector{T}, r::T, C
 	|-P    qq'/r^2|  |v1|  =  λ |C   0| |v1|
 	| C         -P|  |v2|       |0   C| |v2|
 
-	with Arpack's eigs.
+	with eigen.
 	"""
 	n = length(q)
 	A = zeros(T, 2*n, 2*n) # Left matrix of eigenproblem

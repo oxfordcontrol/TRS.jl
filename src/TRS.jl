@@ -6,6 +6,7 @@ using LinearAlgebra
 using LinearMaps
 using IterativeSolvers
 using Arpack
+using KrylovKit
 using Polynomials
 
 include("eigenproblems.jl")

@@ -88,6 +88,9 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 		end
 	end
 
+	if !isreal(x1)
+		return zeros(T, 0), zeros(T, 0), NaN
+	end
 	return x1, x2, l
 end
 
