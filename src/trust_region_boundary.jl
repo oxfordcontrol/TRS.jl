@@ -25,7 +25,7 @@ function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
 	compute_local=false, tol_hard=2e-7, kwargs...)
 
 	if compute_local
-		nev=3  # We will need the two rightmost eigenvalues. Requesting three seems to make eigs more robust.
+		nev=2  # We will need the two rightmost eigenvalues. Requesting three seems to make eigs more robust.
 	else
 		nev=1  # We will only need the rightmost eigenvalue
 	end
