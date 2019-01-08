@@ -27,6 +27,7 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	if info.converged < 2
 		@show info
 	end
+	@assert any(imag(λ) .== 0)
 	# @assert info.converged >= 1 # min(nev, 2)
 
 	return λ, hcat(V...), info.numiter, 2*info.numops
