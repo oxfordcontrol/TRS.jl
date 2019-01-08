@@ -24,9 +24,12 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 
 	decomp, history = partialschur(W, nev=nev, tol=tol, which=LR(), restarts=maxiter) #, x0=v0);
 	λ, V = partialeigen(decomp);
-	@show λ
-	@show eigvals(W)
 	if abs(maximum(real(eigvals(W))) - maximum(real(λ))) > 1e-6
+		@show λ
+		decomp, history = partialschur(W, nev=nev, tol=tol, which=LR(), restarts=maxiter) #, x0=v0);
+		λ, V = partialeigen(decomp);
+		@show λ
+		@show "ERROR"
 		@save "myerror.jld2" W
 	end
 	@assert history.nconverged >= min(nev, 2)
