@@ -1,5 +1,5 @@
 function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
-	tol=1e-13, maxiter=600, v0=zeros((0,))) where {T}
+	tol=1e-11, maxiter=300, v0=zeros((0,))) where {T}
 	"""
 	Calculates rightmost eigenvalues/vectors of
 
@@ -23,7 +23,7 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	if length(v0) == 0
 		v0 = randn(2*n)
 	end
-	λ, V, info = eigsolve(x -> -A(similar(x), x), v0, howmany=nev, which=:LR, maxiter=maxiter, tol=tol)
+	λ, V, info = eigsolve(x -> -A(similar(x), x), v0, nev, :LR, maxiter=maxiter, tol=tol)
 	@assert info.converged >= min(nev, 2)
 
 	return λ, hcat(V...), info.numiter, 2*info.numops
