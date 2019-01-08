@@ -17,16 +17,21 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 		mul!(y2, P, x2)
 		axpy!(-dot(q, x2)/r^2, q, y1)
 		axpy!(-one(T), x1, y2)
-		return y
 	end
+	D = LinearMap{T}(A, 2*n; ismutating=true)
+	q = reshape(q, n, 1)
+	W = [-P q*q'/r^2; I -P]
 
-	if length(v0) == 0
-		v0 = randn(2*n)
+	decomp, history = partialschur(W, nev=nev, tol=tol, which=LR(), restarts=maxiter) #, x0=v0);
+	λ, V = partialeigen(decomp);
+	@show λ
+	@show eigvals(W)
+	if abs(maximum(real(eigvals(W))) - maximum(real(λ))) > 1e-6
+		@save "myerror.jld2" W
 	end
-	λ, V, info = eigsolve(x -> -A(similar(x), x), v0, howmany=nev, which=:LR, maxiter=maxiter, tol=tol)
-	@assert info.converged >= min(nev, 2)
+	@assert history.nconverged >= min(nev, 2)
 
-	return λ, hcat(V...), info.numiter, 2*info.numops
+	return λ, V, 0, 2*history.mvproducts
 end
 
 function gen_eigenproblem(P, q::AbstractVector{T}, r::T, C::AbstractMatrix, nev=1;

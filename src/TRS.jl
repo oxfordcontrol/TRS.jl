@@ -6,8 +6,9 @@ using LinearAlgebra
 using LinearMaps
 using IterativeSolvers
 using Arpack
-using KrylovKit
+using ArnoldiMethod
 using Polynomials
+using JLD2
 
 include("eigenproblems.jl")
 include("trust_region_boundary.jl")
