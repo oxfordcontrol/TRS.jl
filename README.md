@@ -27,10 +27,16 @@ SIAM Journal on Optimization 27.1 (2017): 269-291.
 Additionally, the cases of local-no-global minimizers and linear equality constraints are covered in
 ```
 Rontsis N., Goulart P.J., & Nakatsukasa, Y.
-Solving the extended trust-region subproblem via an active set method.
+Solving linearly inequality constrained trust-region subproblems with an active set method.
 Preprint in Arxiv.
 ```
 
+## Installation
+This package can be installed by running
+```
+add https://github.com/oxfordcontrol/TRS.jl
+```
+in [Julia's Pkg REPL mode](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Getting-Started-1).
 ## Documentation
 ### Standard TRS
 The global solution of the standard TRS
@@ -39,7 +45,7 @@ minimize    ½x'Px + q'x
 subject to  ‖x‖ = r,
 ```
 where ‖·‖ is the 2-norm, can be obtained with:
-```
+```julia
 trs(P, q, r; kwargs...) -> x, info
 ```
 **Arguments** (`T` is any real numerical type):
@@ -58,7 +64,7 @@ trs(P, q, r; kwargs...) -> x, info
 
 ### Ellipsoidal Norms
 Results for ellipsoidal norms `‖x‖ := sqrt(x'Cx)` can be obtained with
-```
+```julia
 trs(P, q, r, C; kwargs...) -> x, info
 ```
 which is the same as `trs(P, q, r)` except for the input argument
@@ -74,14 +80,14 @@ subject to  ‖x‖ ≤ r
             Ax = b,
 ```
 where `A` is a "fat", full row-rank matrix, can be solved as
-```
+```julia
 trs(P, q, r, A, b; kwargs...) -> x, info
 ```
 which is the same as `trs(P, q, r)` except for the input arguments `A::AbstractMatrix{T}` and `b::AbstractVector{T}`
 
 ### Finding local-no-global minimizers
 Due to non-convexity, a TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:
-```
+```julia
 trs(···; compute_local=true, kwargs...) -> x1, x2, info
 ```
 Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding the second output `x2::Vector{T}`:
