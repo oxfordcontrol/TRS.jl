@@ -1,7 +1,8 @@
 function trs_boundary(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVector{T}; kwargs...) where {T}
 	project!, F = generate_nullspace_projector(A)
 	x = find_feasible_point(b, r, project!, F)
-	return trs_boundary(P, q, r, project!, x; kwargs...)
+	λ_max = max(maximum(eigs(P, nev=1, which=:LR)[1]), 0)
+	return trs_boundary(P, q, r, project!, x, λ_max; kwargs...)
 end
 
 function generate_nullspace_projector(A::AbstractMatrix{T}) where T
@@ -33,19 +34,17 @@ function find_feasible_point(b::AbstractVector{T}, r::T, project!, F::Factorizat
 	return x
 end
 
-function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector{T}; kwargs...) where {T}
+function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector{T}, λ_max::T; kwargs...) where {T}
 	"""
 	Solves the TRS problem
 	minimize    ½x'Px + q'x
 	subject to  ‖x‖ = r
                 Ax = b.
-
 	Instead of passing A and b it is required to pass project! and x, where:
 	- project!(x) projects (inplace) x to the nullspace of A; and
 	- x is a point with ‖x‖ = r and Ax = b
 	"""
 	n = length(q)
-	λ_max = max(eigs(P, nev=1, which=:LR)[1][1], 0)
 	function p(y::AbstractVector{T}, x::AbstractVector{T}) where {T}
 		mul!(y, P, x)
 		# Substracting λ_max makes P negative definite which helps eigs for the constrained case
@@ -80,7 +79,8 @@ end
 function trs(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVector{T}; kwargs...) where {T}
 	project!, F = generate_nullspace_projector(A)
 	x = find_feasible_point(b, r, project!, F)
-	output = trs_boundary(P, q, r, project!, x; kwargs...)
+	λ_max = max(maximum(eigs(P, nev=1, which=:LR)[1]), 0)
+	output = trs_boundary(P, q, r, project!, x, λ_max; kwargs...)
 
  	# x0 is perpendicular to the nullspace of A
 	x0 = output[1] - project!(copy(output[1]))
