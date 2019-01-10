@@ -98,11 +98,12 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}, tol::T) where T
 
 	n = length(q)
-
 	y, residual = cg_hard_case(P, q, C, l, reshape(v1/norm(v1), n, 1))
 	nullspace_dim = 3
 	while residual >= tol*norm(q) && nullspace_dim <= min(12, length(y))
-		κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR)
+		# Start on the range of P - that's important for constrained cases
+		κ, W, _ = eigsolve(x -> P*x, P*randn(n), nullspace_dim, :SR, issymmetric=true)
+		W = hcat(W...)
 		y, residual = cg_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
 		nullspace_dim *= 2
 	end
@@ -126,7 +127,9 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 end
 
 function cg_hard_case(P, q::AbstractVector{T}, C, λ::T, W::AbstractMatrix{T}) where {T}
-	D = LinearMap{T}((x) -> P*x + λ*(C*x + W*(W'*x)), length(q); issymmetric=true)
-	y = cg(-D, q, tol=(eps(real(eltype(q)))/2)^(2/3))
+	n = length(q)
+	D = LinearMap{T}((x) -> P*x + λ*(C*x + W*(W'*x)), n; issymmetric=true)
+ 	# Start on the range of P - that's important for constrained cases
+	y = cg!(P*randn(n), -D, q, tol=(eps(real(eltype(q)))/2)^(2/3))
 	return y, norm(P*y + λ*(C*y) + q)
 end

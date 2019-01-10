@@ -24,8 +24,9 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 		v0 = randn(2*n)
 	end
 	λ, V, info = eigsolve(x -> -A(similar(x), x), v0, nev, :LR, maxiter=maxiter, tol=tol)
-	if info.converged < 2
+	if info.converged < min(2, nev)
 		@show info
+		@show λ
 	end
 	@assert any(imag(λ) .== 0)
 	# @assert info.converged >= 1 # min(nev, 2)
