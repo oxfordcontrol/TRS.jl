@@ -55,7 +55,16 @@ for n in [3, 5, 10, 30, 100, 1000]
                 @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
                 @test norm(x_g - N*x_g_reduced - x0) <= 1e-3*r[i]
                 if length(info_reduced.λ) > 1
-                    @show info, info_reduced, norm(X[:, 2] - N*X_reduced[:, 2] - x0)
+                    diff_lengths = length(info.λ) - length(info_reduced.λ)
+                    if diff_lengths < 0
+                        info.λ = [info.λ; NaN*ones(diff_lengths)]
+                    elseif diff_lengths > 0
+                        info_reduced.λ= [info_reduced.λ; NaN*ones(diff_lengths)]
+                    end
+                    println("Lagrange Mutlipliers")
+                    show(stdout, "text/plain", [info.λ info_reduced.λ]); println()
+                    println("Norm difference of the second solution")
+                    println(norm(X[:, 2] - N*X_reduced[:, 2] - x0))
                     @test info.λ[2] - info_reduced.λ[2] <= 1e-6*abs(info_reduced.λ[2])
                     @test norm(X[:, 2] - N*X_reduced[:, 2] - x0) <= 1e-3*r[i]
                 end
@@ -75,6 +84,16 @@ for n in [3, 5, 10, 30, 100, 1000]
         @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
         @test norm(x_g - N*x_g_reduced - x0) <= 1e-3*r[end]
         if length(info_reduced.λ) > 1
+            diff_lengths = length(info.λ) - length(info_reduced.λ)
+            if diff_lengths < 0
+                info.λ = [info.λ; NaN*ones(diff_lengths)]
+            elseif diff_lengths > 0
+                info_reduced.λ= [info_reduced.λ; NaN*ones(diff_lengths)]
+            end
+            println("Lagrange Mutlipliers")
+            show(stdout, "text/plain", [info.λ info_reduced.λ]); println()
+            println("Norm difference of the second solution")
+            println(norm(X[:, 2] - N*X_reduced[:, 2] - x0))
             @test info.λ[2] - info_reduced.λ[2] <= 1e-6*abs(info_reduced.λ[2])
             @test norm(X[:, 2] - N*X_reduced[:, 2] - x0) <= 1e-3*r[end]
         end
