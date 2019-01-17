@@ -71,7 +71,7 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 	# Extract solution
 	norm_v1 = sqrt(dot(v1, C*v1))
 	X = zeros(T, n, 0)
-	if norm_v1 >= tol_hard && is_first_pop
+	if norm_v1 >= tol_hard || !is_first_pop
 		hard_case = false
 		x = -r*v1/norm_v1
 		if sign(q'*v2) < 0
