@@ -30,19 +30,13 @@ function trs_boundary(solve_eigenproblem::Function, pop_solution!::Function;
 		nev=1  # We will only need the rightmost eigenvalue
 	end
 
-	λ, V, niter, nmult = solve_eigenproblem(nev; kwargs...)
-	x1, x2, λ1 = pop_solution!(λ, V; tol_hard=tol_hard) # Pop global minimizer(s).
-	if !compute_local
-		return x1, TRSinfo(isempty(x2), niter, nmult, [λ1])
+	l, V, niter, nmult = solve_eigenproblem(nev; kwargs...)
+	X, λ, hard_case = pop_solution!(l, V; tol_hard=tol_hard) # Pop global minimizer(s).
+	if !compute_local || hard_case
+		return X, TRSinfo(hard_case, niter, nmult, λ)
 	else
-		if isempty(x2) # i.e. we are not in the hard-case
-			hard_case = false
-			x2, _, λ2 = pop_solution!(λ, V; tol_hard=tol_hard) # Pop local-no-global minimizer.
-		else
-			λ2 = λ1
-			hard_case = true
-		end
-		return x1, x2, TRSinfo(hard_case, niter, nmult, [λ1; λ2])
+		X_local, λ_local, _ = pop_solution!(l, V; tol_hard=tol_hard) # Pop local-no-global minimizer.
+		return [X X_local], TRSinfo(hard_case, niter, nmult, [λ; λ_local])
 	end
 end
 
@@ -58,13 +52,13 @@ function check_inputs(P, q::AbstractVector{T}, r::T, C::AbstractMatrix{T}) where
 end
 
 function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct=false) where {T}
-	# Pop rightmost eigenvector
-	idx = argmax(real(λ))
-	if abs(real(λ[idx])) <= 1e6*abs(imag(λ[idx])) # A solution exists only on real eigenvalues
-		return zeros(T, 0), zeros(T, 0), NaN
+	idx = argmax(real(λ)) 	# Pop rightmost eigenvector
+	is_first_pop = all(isfinite.(λ))
+	n = length(q)
+	if abs(imag(λ[idx])) >= 1e-9 && !is_first_pop # A solution exists only on real eigenvalues
+		return zeros(T, n, 0), zeros(T, 0), false
 	end
 	l = real(λ[idx]);
-	λ[idx] = -Inf  # This ensures that the next pop_solution! would not get the same solution.
 	complex_v = view(V, :, idx)
 	if norm(real(complex_v)) > norm(imag(complex_v))
 		v = real(complex_v)
@@ -72,23 +66,33 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 		v = imag(complex_v)  # Sometimes the retuned eigenvector is complex
 	end
 	v ./= norm(v)
-	n = length(q)
 	v1 = view(v, 1:n); v2 = view(v, n+1:2*n)
 
 	# Extract solution
 	norm_v1 = sqrt(dot(v1, C*v1))
-	if norm_v1 >= tol_hard
-		x1 = -sign(q'*v2)*r*v1/norm_v1
-		x2 = zeros(0)
+	X = zeros(T, n, 0)
+	if norm_v1 >= tol_hard && is_first_pop
+		hard_case = false
+		x = -r*v1/norm_v1
+		if sign(q'*v2) < 0
+			x .= -x
+		end
+		X = reshape(x, n, 1)
 	else # hard case
+		hard_case = true
 		if !direct
 			x1, x2 = extract_solution_hard_case(P, q, r, C, l, v1, v2, tol_hard)
 		else
 			x1, x2 = extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
 		end
+		# Sometimes extract_solution_hard_case fails in this case only return the Lagrange multipliers
+		if isreal(x1) && isreal(x2)
+			X = [x1 x2]
+		end
 	end
+	λ[idx] = -Inf  # This ensures that the next pop_solution! would not consider the same solution.
 
-	return x1, x2, l
+	return X, l*ones(size(X, 2)), hard_case
 end
 
 function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
@@ -113,8 +117,13 @@ end
 function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}) where T
 
-	W = nullspace(Matrix(P) + l*I)
-	y = -(P + l*C*(I + W*W'))\q
+	W = nullspace(Matrix(P) + l*C, 1e-9)
+	y = randn(length(q))
+	try
+		y = -(Symmetric(P + l*C + C*W*W')\q)
+	catch
+		nothing
+	end
 	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 	x1 = y + α[1]*v2
 	x2 = y + α[2]*v2

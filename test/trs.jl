@@ -18,10 +18,11 @@ for n in [2, 5, 30, 100, 1000]
             P = P - 1.1*abs(eigs(P, nev=1, which=:LR)[1][1])*I; 
         end
         if n < 30
-            x_g, x_l, info = trs_small(P, q, r[i], compute_local=true)
+            X, info = trs_small(P, q, r[i], compute_local=true)
         else
-            x_g, x_l, info = trs(P, q, r[i], compute_local=true)
+            X, info = trs(P, q, r[i], compute_local=true)
         end
+        x_g = X[:, 1]
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[i])
         str = "Trs - r:"*string(r[i])
         @show norm(P*x_g + q + info.λ[1]*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*x_matlab[:, 1])
@@ -42,10 +43,11 @@ for n in [2, 5, 30, 100, 1000]
     v = v/norm(v)
     q = (I - v*v')*q
     if n < 30
-        x_g, x_l, info = trs_small(P, q, r[end], compute_local=true)
+        X, info = trs_small(P, q, r[end], compute_local=true)
     else
-        x_g, x_l, info = trs(P, q, r[end], compute_local=true)
+        X, info = trs(P, q, r[end], compute_local=true)
     end
+    x_g = X[:, 1]
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
     @show norm(P*x_g + q + info.λ[1]*x_g), norm(P*x_matlab[:, 1] + q + λ_matlab*x_matlab[:, 1])
     # @show info.λ[1] + (dot(x_g, P*x_g) + dot(q,x_g))/r[end]^2

@@ -54,7 +54,7 @@ trs(P, q, r; kwargs...) -> x, info
 * `r::T`: the radius.
 
 **Output**
-* `x::Vector{T}`: The global solution to the TRS
+* `X::Matrix{T}`: Array with each column containing a global solution to the TRS
 * `info::TRSInfo{T}`: Info structure. See [below](#the-trsinfo-struct) for details.
 
 **Keywords (optional)**
@@ -88,18 +88,9 @@ which is the same as `trs(P, q, r)` except for the input arguments `A::AbstractM
 ### Finding local-no-global minimizers
 Due to non-convexity, a TRS can exhibit at most one local minimizer with objective value less than the one of the global. The local-no-global minimizer can be obtained (if it exists) via:
 ```julia
-trs(···; compute_local=true, kwargs...) -> x1, x2, info
+trs(···; compute_local=true, kwargs...) -> X info
 ```
-Similarly to the cases above, `x1::Vector{T}` is the global solution. Regarding the second output `x2::Vector{T}`:
-
-**In normal cases:** (i.e. not in the hard-case -> "almost always")  
-`x2` is the local-no-global optimizer. If the local-no-global solution does not exist, a zero-length vector is returned.
-
-**In the hard case:**  
-`x2` corresponds to a second global minimizer.
-
-The user can detect the hard case via the `info.hard_case` flag.
-
+Similarly to the cases above, `X::Matrix{T}` contains the global solution(s), but in this case, local minimizers are also included. The global minimizers(s) proceed the local one.
 
 ### Solving constant-norm problems
 Simply use `trs_boundary` instead of `trs`.

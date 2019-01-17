@@ -61,36 +61,27 @@ function trs_boundary(P, q::AbstractVector{T}, r::T, project!, x::AbstractVector
 	return shift_output(output..., x0, λ_max)
 end
 
-function shift_output(x1, x2, info, x0, λ_max)
-	x1 .+= x0
-	if !isempty(x2)
-		x2 .+= x0
-	end
+function shift_output(X, info, x0, λ_max)
+	X .+= x0
 	info.λ .-= λ_max
-	return x1, x2, info
-end
-
-function shift_output(x1, info, x0, λ_max)
-	x1 .+= x0
-	info.λ .-= λ_max
-	return x1, info
+	return X, info
 end
 
 function trs(P, q::AbstractVector{T}, r::T, A::AbstractMatrix{T}, b::AbstractVector{T}; kwargs...) where {T}
 	project!, F = generate_nullspace_projector(A)
 	x = find_feasible_point(b, r, project!, F)
 	λ_max = max(maximum(eigs(P, nev=1, which=:LR)[1]), 0)
-	output = trs_boundary(P, q, r, project!, x, λ_max; kwargs...)
+	X, info = trs_boundary(P, q, r, project!, x, λ_max; kwargs...)
 
- 	# x0 is perpendicular to the nullspace of A
-	x0 = output[1] - project!(copy(output[1]))
+	# x0 is perpendicular to the nullspace of A
+	x0 = X[:, 1] - project!(copy(X[:, 1]))
 	# We remove x0 from the output(s) so that they belong to the nullspace of A
-	shift_output(output..., -x0, 0)
+	shift_output(X, info, -x0, 0)
 	# Define projected matrices (on the nullspace of A) for the cg
 	P_projected = LinearMap{T}((y, x) -> project!(mul!(y, P, x)), length(x0);
 		ismutating=true, issymmetric=true)
 	q_projected = project!(q + P*x0)
 	# Check interior solutions (if necessary) and add back x0
-	output = check_interior!(output..., P_projected, q_projected)
-	return shift_output(output..., x0, 0)
+	X, info = check_interior!(X, info, P_projected, q_projected)
+	return shift_output(X, info, x0, 0)
 end

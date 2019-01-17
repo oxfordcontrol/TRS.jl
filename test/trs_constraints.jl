@@ -46,15 +46,18 @@ for n in [3, 5, 10, 30, 100, 1000]
 
             r_ = sqrt(r[i]^2 - norm(x0)^2)
 
-            x_g, x_l, info = trs(P, q, r[i], A, b, compute_local=true)
-            x_g_reduced, x_l_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
+            X, info = trs(P, q, r[i], A, b, compute_local=true)
+            x_g = X[:, 1]
+            X_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
+            x_g_reduced = X_reduced[:, 1]
             str = "Constrained trs - r:"*string(r[i])
             @testset "$str" begin
                 @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
                 @test norm(x_g - N*x_g_reduced - x0) <= 1e-3*r[i]
-                if !isnan(info_reduced.λ[2])
+                if length(info_reduced.λ) > 1
+                    @show info, info_reduced, norm(X[:, 2] - N*X_reduced[:, 2] - x0)
                     @test info.λ[2] - info_reduced.λ[2] <= 1e-6*abs(info_reduced.λ[2])
-                    @test norm(x_l - N*x_l_reduced - x0) <= 1e-3*r[i]
+                    @test norm(X[:, 2] - N*X_reduced[:, 2] - x0) <= 1e-3*r[i]
                 end
             end
         end
@@ -64,14 +67,16 @@ for n in [3, 5, 10, 30, 100, 1000]
     v = v/norm(v)
     q = (I - v*v')*q
     q_ = N'*(q + P*x0)
-    x_g, x_l, info = trs(P, q, r[end], A, b, compute_local=true)
-    x_g_reduced, x_l_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
+    X, info = trs(P, q, r[end], A, b, compute_local=true)
+    x_g = X[:, 1]
+    X_reduced, info_reduced = trs(P_, q_, r_, compute_local=true)
+    x_g_reduced = X_reduced[:, 1]
     @testset "Constrainted trs - hard case" begin
         @test info.λ[1] - info_reduced.λ[1] <= 1e-6*abs(info_reduced.λ[1])
         @test norm(x_g - N*x_g_reduced - x0) <= 1e-3*r[end]
-        if !isnan(info_reduced.λ[2])
+        if length(info_reduced.λ) > 1
             @test info.λ[2] - info_reduced.λ[2] <= 1e-6*abs(info_reduced.λ[2])
-            @test norm(x_l - N*x_l_reduced - x0) <= 1e-3*r[end]
+            @test norm(X[:, 2] - N*X_reduced[:, 2] - x0) <= 1e-3*r[end]
         end
     end
 end
