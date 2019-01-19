@@ -117,13 +117,10 @@ end
 function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}) where T
 
-	W = nullspace(Matrix(P) + l*C, 1e-9)
-	y = randn(length(q))
-	try
-		y = -(Symmetric(P + l*C + C*W*W')\q)
-	catch
-		nothing
-	end
+	n = length(q)
+	λ, W = eigen(P + l*C)
+	W = W[:, abs.(λ) .<= 1e-9] # ToDo: Avoid a fixed tolerance
+	y = -(Symmetric(P + l*C + C*W*W')\q)
 	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 	x1 = y + α[1]*v2
 	x2 = y + α[2]*v2
