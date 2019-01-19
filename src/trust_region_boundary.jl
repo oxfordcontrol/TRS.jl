@@ -104,10 +104,16 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	while residual >= tol*norm(q) && nullspace_dim <= min(12, length(y))
 		# Start on the range of P - that's important for constrained cases
 		κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR, v0 = P*randn(n))
+		l = -minimum(κ)
+		v2 = W[:, argmin(κ)]
 		y, residual = cg_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
 		nullspace_dim *= 2
 	end
 	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+	if !isreal(α)
+		@warn "Indirect extraction of solution failed; trying direct extraction."
+		return extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
+	end
 	x1 = y + α[1]*v2
 	x2 = y + α[2]*v2
 
