@@ -8,11 +8,16 @@ subject to  ‖x‖ ≤ r
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
 Furthermore, the following extensions are supported:
-* [Ellipsoidal norms](#ellipsoidal-norms): `‖x‖ = sqrt(x'Cx)` for any positive definite `C`
-* [Linear equality constraints](#equality-constraints): `Ax = b`
-* Degenerate cases (i.e. the so-called `hard case`)
-* [Finding the local-no-global minimizer](#finding-local-no-global-minimizers)
-* [Solving the related constant-norm (`‖x‖ = r`) problem](#solving-constant-norm-problems) for all of the cases described above.
+- [TRS.jl: Solving the Trust Region Subproblem](#trsjl-solving-the-trust-region-subproblem)
+  - [Installation](#installation)
+  - [Documentation](#documentation)
+    - [Standard TRS](#standard-trs)
+    - [Ellipsoidal Norms](#ellipsoidal-norms)
+    - [Equality constraints](#equality-constraints)
+    - [Finding local-no-global minimizers](#finding-local-no-global-minimizers)
+    - [Solving constant-norm problems](#solving-constant-norm-problems)
+    - [Solving small problems](#solving-small-problems)
+    - [The `TRSInfo` struct](#the-trsinfo-struct)
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
@@ -42,7 +47,7 @@ in [Julia's Pkg REPL mode](https://docs.julialang.org/en/v1/stdlib/Pkg/index.htm
 The global solution of the standard TRS
 ```
 minimize    ½x'Px + q'x
-subject to  ‖x‖ = r,
+subject to  ‖x‖ ≤ r,
 ```
 where ‖·‖ is the 2-norm, can be obtained with:
 ```julia
