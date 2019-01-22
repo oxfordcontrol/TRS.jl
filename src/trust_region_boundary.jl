@@ -71,14 +71,16 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 	# Extract solution
 	norm_v1 = sqrt(dot(v1, C*v1))
 	X = zeros(T, n, 0)
+	hard_case = false
 	if norm_v1 >= tol_hard || !is_first_pop
-		hard_case = false
-		x = -r*v1/norm_v1
-		if sign(q'*v2) < 0
-			x .= -x
+		if norm_v1 >= 1e-11
+			x = -r*v1/norm_v1
+			if sign(q'*v2) < 0
+				x .= -x
+			end
+			X = reshape(x, n, 1)
 		end
-		X = reshape(x, n, 1)
-	else # hard case
+	elseif is_first_pop # hard case
 		hard_case = true
 		if !direct
 			x1, x2 = extract_solution_hard_case(P, q, r, C, l, v1, v2, tol_hard)
@@ -99,17 +101,23 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}, tol::T) where T
 
 	n = length(q)
-	y, residual = cg_hard_case(P, q, C, l, reshape(v1/norm(v1), n, 1))
-	nullspace_dim = 3
-	while residual >= tol*norm(q) && nullspace_dim <= min(12, length(y))
-		# Start on the range of P - that's important for constrained cases
-		κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR, v0 = P*randn(n))
-		l = -minimum(κ) # Check if this line and the next actually help
-		v2 = W[:, argmin(κ)] # or if they introduce an error
-		y, residual = cg_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
-		nullspace_dim *= 2
+	y, residual = cg_hard_case(P, q, C, l, reshape(v2/norm(v2), n, 1))
+	α = [one(T)*im; one(T)*im]
+	try
+		nullspace_dim = 3
+		while residual >= tol*norm(q) && nullspace_dim <= min(12, length(y))
+			# Start on the range of P - that's important for constrained cases
+			κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR, v0 = P*randn(n))
+			# l = -minimum(κ) # Check if this line and the next actually help
+			# v2 = W[:, argmin(κ)] # or if they introduce an error
+			y, residual = cg_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
+			nullspace_dim *= 2
+		end
+		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+	catch
+		nothing
 	end
-	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+
 	if !isreal(α)
 		@warn "Indirect extraction of solution failed; trying direct extraction."
 		return extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
