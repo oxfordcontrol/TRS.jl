@@ -72,7 +72,7 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 	norm_v1 = sqrt(dot(v1, C*v1))
 	X = zeros(T, n, 0)
 	hard_case = false
-	if norm_v1 >= tol_hard || !is_first_pop
+	if norm_v1 >= tol_hard# || (!is_first_pop && !direct)
 		if norm_v1 >= 1e-11
 			x = -r*v1/norm_v1
 			if sign(q'*v2) < 0
@@ -80,7 +80,7 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 			end
 			X = reshape(x, n, 1)
 		end
-	elseif is_first_pop # hard case
+	else#if is_first_pop # hard case
 		hard_case = true
 		if !direct
 			x1, x2 = extract_solution_hard_case(P, q, r, C, l, v1, v2, tol_hard)
@@ -132,9 +132,11 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 	v1::AbstractVector{T}, v2::AbstractVector{T}) where T
 
 	n = length(q)
-	λ, W = eigen(P + l*C)
-	W = W[:, abs.(λ) .<= 1e-9] # ToDo: Avoid a fixed tolerance
-	y = -(Symmetric(P + l*C + C*W*W')\q)
+	λ, V = eigen(Symmetric(P + l*C))
+	λ[abs.(λ) .< 1e-9] .= 0
+	A = V*diagm(0 => λ)*V' # Essentially P + l*C with a "refined" nullspace
+	F = qr(A, Val(true))
+	y = -(F\q) # y is the minimum norm solution of P + l*C = q
 	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 	x1 = y + α[1]*v2
 	x2 = y + α[2]*v2
