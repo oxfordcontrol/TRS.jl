@@ -101,24 +101,16 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}, tol::T) where T
 
 	n = length(q)
-	y, residual = cg_hard_case(P, q, C, l, reshape(v2/norm(v2), n, 1))
-	α = [one(T)*im; one(T)*im]
-	try
-		nullspace_dim = 3
-		while residual >= tol*norm(q) && nullspace_dim <= min(12, length(y))
-			# Start on the range of P - that's important for constrained cases
-			κ, W, _ = eigs(P, nev=nullspace_dim, which=:SR, v0 = P*randn(n))
-			# l = -minimum(κ) # Check if this line and the next actually help
-			# v2 = W[:, argmin(κ)] # or if they introduce an error
-			y, residual = cg_hard_case(P, q, C, l, W[:, abs.(κ .+ l) .< 1e-6])
-			nullspace_dim *= 2
-		end
-		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
-	catch
-		nothing
+	W = reshape(v2/norm(v2), n, 1)
+	D = LinearMap{T}((x) -> P*x + l*C*x + W*(W'*x), n; issymmetric=true)
+	y = minres!(P*randn(n), D, -q, tol=T(1e-12), verbose=false)
+	if norm(y) > r
+		l += T(1e-10) # Usually perturbing the multiplier and solving again works
+		minres!(y, D, -q, tol=T(1e-12), verbose=false)
 	end
 
-	if !isreal(α)
+	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+	if !isreal(α) || isempty(α) || norm(P*y + l*(C*y) + q) > tol
 		@warn "Indirect extraction of solution failed; trying direct extraction."
 		return extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
 	end
@@ -142,12 +134,4 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 	x2 = y + α[2]*v2
 
 	return x1, x2
-end
-
-function cg_hard_case(P, q::AbstractVector{T}, C, λ::T, W::AbstractMatrix{T}) where {T}
-	n = length(q)
-	D = LinearMap{T}((x) -> P*x + λ*(C*x + W*(W'*x)), n; issymmetric=true)
- 	# Start on the range of P - that's important for constrained cases
-	y = cg!(P*randn(n), -D, q, tol=(eps(real(eltype(q)))/2)^(2/3))
-	return y, norm(P*y + λ*(C*y) + q)
 end
