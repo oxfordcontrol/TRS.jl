@@ -9,6 +9,11 @@ function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	with Arpack's eigs.
 	"""
 	n = length(q)
+	if norm(q) < 1e-9
+		# Solution is the minimum eigenvector of P
+		(λ, V, nconv, niter, nmult, _) = eigs(P, nev=1, which=:SR, tol=tol, maxiter=maxiter)
+		return -λ, [0*V; V], niter, nmult
+	end
 
 	function A(y::AbstractVector, x::AbstractVector)
 		@inbounds y1 = view(y, 1:n); @inbounds y2 = view(y, n+1:2*n)
@@ -62,8 +67,8 @@ function eigenproblem_small(P::AbstractMatrix, q::AbstractVector{T}, r::T, nev=1
 	"""
 	Calculates eigenvalues/vectors of
 
-	|-P    qq'/r^2|  |v1|  =  λ |C   0| |v1|
-	| C         -P|  |v2|       |0   C| |v2|
+	|-P    qq'/r^2|  |v1|  =  λ |v1|
+	| I         -P|  |v2|       |v2|
 
 	with eigen.
 	"""

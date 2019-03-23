@@ -68,6 +68,12 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 	v ./= norm(v)
 	v1 = view(v, 1:n); v2 = view(v, n+1:2*n)
 
+	if norm(q) < 1e-9
+		# Solution the eigenvector of Px = lCx, which is parallel to v2
+		x = r*v2/sqrt(v2'*C*v2)
+		return [x -x], [l; l], true
+	end
+
 	# Extract solution
 	norm_v1 = sqrt(dot(v1, C*v1))
 	X = zeros(T, n, 0)
