@@ -78,24 +78,32 @@ function pop_solution!(λ, V, P, q::AbstractVector{T}, r::T, C; tol_hard, direct
 	norm_v1 = sqrt(dot(v1, C*v1))
 	X = zeros(T, n, 0)
 	hard_case = false
-	if norm_v1 >= tol_hard# || (!is_first_pop && !direct)
+	if norm_v1 >= tol_hard
 		if norm_v1 >= 1e-11
 			x = -r*v1/norm_v1
 			if sign(q'*v2) < 0
 				x .= -x
 			end
+
+			residual = (P*x + l*C*x + q)
+			# Polish the solution if necessary.
+			if norm(residual) > 1e-7
+				D = LinearMap{T}((x) -> P*x + l*C*x, n; issymmetric=true)
+				lsqr!(x, D, -q, maxiter=20)
+				x /= sqrt(x'*C*x)/r
+			end
 			X = reshape(x, n, 1)
 		end
-	else#if is_first_pop # hard case
+	elseif is_first_pop # hard case
 		hard_case = true
 		if !direct
-			x1, x2 = extract_solution_hard_case(P, q, r, C, l, v1, v2, tol_hard)
+			X = extract_solution_hard_case(P, q, r, C, l, v1, v2, tol_hard)
 		else
-			x1, x2 = extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
+			X = extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
 		end
 		# Sometimes extract_solution_hard_case fails in this case only return the Lagrange multipliers
-		if isreal(x1) && isreal(x2)
-			X = [x1 x2]
+		if !isreal(X)
+			X = zeros(T, n, 0)
 		end
 	end
 	λ[idx] = -Inf  # This ensures that the next pop_solution! would not consider the same solution.
@@ -107,23 +115,23 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	v1::AbstractVector{T}, v2::AbstractVector{T}, tol::T) where T
 
 	n = length(q)
-	W = reshape(v2/norm(v2), n, 1)
-	D = LinearMap{T}((x) -> P*x + l*C*x + W*(W'*x), n; issymmetric=true)
-	y = minres!(P*randn(n), D, -q, tol=T(1e-12), verbose=false)
-	if norm(y) > r
+	D = LinearMap{T}((x) -> P*x + l*C*x + v2*dot(v2, x)/100, n; issymmetric=true)
+	y = minres(D, -q, maxiter=100, verbose=false)
+	residual = P*y + l*C*y + q
+	if sqrt(y'*C*y) > r || norm(residual) > tol
 		l += T(1e-10) # Usually perturbing the multiplier and solving again works
-		minres!(y, D, -q, tol=T(1e-12), verbose=false)
+		minres!(y, D, -q, tol=norm(residual)/tol, verbose=false)
 	end
 
 	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
-	if !isreal(α) || isempty(α) || norm(P*y + l*(C*y) + q) > tol
-		@warn "Indirect extraction of solution failed; trying direct extraction."
-		return extract_solution_hard_case_direct(P, q, r, C, l, v1, v2)
+	if !isreal(α) || isempty(α) # || norm(P*y + l*(C*y) + q) > tol
+		x = r*y/sqrt(y'*C*y)
+		return reshape(x, n, 1)
+	else
+		x1 = y + α[1]*v2
+		x2 = y + α[2]*v2
+		return [x1 x2]
 	end
-	x1 = y + α[1]*v2
-	x2 = y + α[2]*v2
-
-	return x1, x2
 end
 
 function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::T,
@@ -131,7 +139,7 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 
 	n = length(q)
 	λ, V = eigen(Symmetric(P + l*C))
-	λ[abs.(λ) .< 1e-9] .= 0
+	λ[abs.(λ) .< 1e-10] .= 0
 	A = V*diagm(0 => λ)*V' # Essentially P + l*C with a "refined" nullspace
 	F = qr(A, Val(true))
 	y = -(F\q) # y is the minimum norm solution of P + l*C = q
@@ -139,5 +147,5 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 	x1 = y + α[1]*v2
 	x2 = y + α[2]*v2
 
-	return x1, x2
+	return [x1 x2]
 end
