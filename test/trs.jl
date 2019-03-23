@@ -18,9 +18,9 @@ for n in [2, 5, 30, 100, 1000]
             P = P - 1.1*abs(eigs(P, nev=1, which=:LR)[1][1])*I; 
         end
         if n < 30
-            X, info = trs_small(P, q, r[i], compute_local=true)
+            X, info = TRS.trs_small(P, q, r[i], compute_local=true)
         else
-            X, info = trs(P, q, r[i], compute_local=true)
+            X, info = TRS.trs(P, q, r[i], compute_local=true)
         end
         x_g = X[:, 1]
         x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[i])
@@ -42,10 +42,10 @@ for n in [2, 5, 30, 100, 1000]
     λ_min, v, _ = eigs(-P, nev=1, which=:LR)
     v = v/norm(v)
     q = (I - v*v')*q
-    if n < 30
-        X, info = trs_small(P, q, r[end], compute_local=true)
+    if n < 0
+        X, info = TRS.trs_small(P, q, r[end], compute_local=true)
     else
-        X, info = trs(P, q, r[end], compute_local=true)
+        X, info = TRS.trs(P, q, r[end], compute_local=true)
     end
     x_g = X[:, 1]
     x_matlab, λ_matlab = mxcall(:TRSgep, 2, P, q, eye, r[end])
