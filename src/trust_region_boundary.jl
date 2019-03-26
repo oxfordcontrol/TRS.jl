@@ -123,14 +123,14 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 		minres!(y, D, -q, tol=norm(residual)/tol, verbose=false)
 	end
 
-	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
-	if !isreal(α) || isempty(α) # || norm(P*y + l*(C*y) + q) > tol
-		x = r*y/sqrt(y'*C*y)
-		return reshape(x, n, 1)
-	else
+	if sqrt(y'*C*y) < r
+		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 		x1 = y + α[1]*v2
 		x2 = y + α[2]*v2
 		return [x1 x2]
+	else
+		x = r*y/sqrt(y'*C*y)
+		return reshape(x, n, 1)
 	end
 end
 
@@ -139,13 +139,17 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 
 	n = length(q)
 	λ, V = eigen(Symmetric(P + l*C))
-	λ[abs.(λ) .< 1e-10] .= 0
+	λ[abs.(λ) .< 1e-9] .= 0
 	A = V*diagm(0 => λ)*V' # Essentially P + l*C with a "refined" nullspace
 	F = qr(A, Val(true))
 	y = -(F\q) # y is the minimum norm solution of P + l*C = q
-	α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
-	x1 = y + α[1]*v2
-	x2 = y + α[2]*v2
-
-	return [x1 x2]
+	if sqrt(y'*C*y) < r
+		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+		x1 = y + α[1]*v2
+		x2 = y + α[2]*v2
+		return [x1 x2]
+	else
+		x = r*y/sqrt(y'*C*y)
+		return reshape(x, n, 1)
+	end
 end
