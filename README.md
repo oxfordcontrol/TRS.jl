@@ -21,7 +21,7 @@ Furthermore, the following extensions are supported:
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
-If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://github.com/oxfordcontrol/eTRS.jl) package.
+If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://github.com/oxfordcontrol/QPnorm.jl) package.
 
 The main reference for this package is
 ```
@@ -32,7 +32,7 @@ SIAM Journal on Optimization 27.1 (2017): 269-291.
 Additionally, the cases of local-no-global minimizers and linear equality constraints are covered in
 ```
 Rontsis N., Goulart P.J., & Nakatsukasa, Y.
-Solving linearly inequality constrained trust-region subproblems with an active set method.
+An active-set algorithm for norm constrained quadratic problems
 Preprint in Arxiv.
 ```
 
