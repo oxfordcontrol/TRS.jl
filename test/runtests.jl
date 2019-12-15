@@ -6,5 +6,6 @@ using Test
   include("./trs.jl")
   include("./trs_constraints.jl")
   include("./trs_ellipsoid.jl")
+  include("./special_cases.jl")
 end
 nothing
