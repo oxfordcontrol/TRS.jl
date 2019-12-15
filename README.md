@@ -8,16 +8,11 @@ subject to  ‖x‖ ≤ r
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
 Furthermore, the following extensions are supported:
-- [TRS.jl: Solving the Trust Region Subproblem](#trsjl-solving-the-trust-region-subproblem)
-  - [Installation](#installation)
-  - [Documentation](#documentation)
-    - [Standard TRS](#standard-trs)
-    - [Ellipsoidal Norms](#ellipsoidal-norms)
-    - [Equality constraints](#equality-constraints)
-    - [Finding local-no-global minimizers](#finding-local-no-global-minimizers)
-    - [Solving constant-norm problems](#solving-constant-norm-problems)
-    - [Solving small problems](#solving-small-problems)
-    - [The `TRSInfo` struct](#the-trsinfo-struct)
+- [Ellipsoidal Norms](#ellipsoidal-norms)
+- [Linear Equality constraints](#equality-constraints)
+- [Finding local-no-global minimizers](#finding-local-no-global-minimizers)
+- [Solving constant-norm problems](#solving-constant-norm-problems)
+- [Solving small problems efficiently](#solving-small-problems)
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
@@ -33,7 +28,7 @@ Additionally, the cases of local-no-global minimizers and linear equality constr
 ```
 Rontsis N., Goulart P.J., & Nakatsukasa, Y.
 An active-set algorithm for norm constrained quadratic problems
-Preprint in Arxiv.
+arXiv:1906.04022
 ```
 
 ## Installation
@@ -66,6 +61,8 @@ trs(P, q, r; kwargs...) -> x, info
 * `tol`, `maxiter`, `ncv` and `v0` that are passed to `eigs` used to solve the underlying eigenproblem. Refer to `Arpack.jl`'s [documentation](https://julialinearalgebra.github.io/Arpack.jl/stable/) for these arguments. Of particular importance is **`tol::T`** which essentially controls the **accuracy** of the returned solutions.
 * `tol_hard=2e-7`: Threshold for switching to the hard-case. Refer to [Adachi et al.](https://epubs.siam.org/doi/pdf/10.1137/16M1058200), Section 4.2 for an explanation.
 * `compute_local::Bool=False`: Whether the local-no-global solution should be calculated. More details [below](#finding-local-no-global-minimizers).
+
+**Note that if `v0` is not set, then `Arpack` starts from a random initial vector and thus the results will not be completely deterministic.**
 
 ### Ellipsoidal Norms
 Results for ellipsoidal norms `‖x‖ := sqrt(x'Cx)` can be obtained with
@@ -111,3 +108,6 @@ The returned info structure contains the following fields:
 * `niter::Int`:  Number of iterations of the eigensolver
 * `nmul::Int`:   Number of multiplications with `P` requested by the eigensolver.
 * `λ::Vector` Lagrange Multiplier(s) of the solution(s).
+
+
+
