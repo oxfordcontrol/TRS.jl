@@ -18,17 +18,17 @@ This package has been specifically designed for large scale problems. Separate, 
 
 If you are interested for support of linear inequality constraints `Ax ≤ b` check [this](https://github.com/oxfordcontrol/QPnorm.jl) package.
 
-The main reference for this package is
+The main references for this package are
+```
+Rontsis N., Goulart P.J., & Nakatsukasa, Y.
+An active-set algorithm for norm constrained quadratic problems
+Mathematical Programming (2021): 1-37.
+```
+and
 ```
 Adachi, S., Iwata, S., Nakatsukasa, Y., & Takeda, A.
 Solving the trust-region subproblem by a generalized eigenvalue problem.
 SIAM Journal on Optimization 27.1 (2017): 269-291.
-```
-Additionally, the cases of local-no-global minimizers and linear equality constraints are covered in
-```
-Rontsis N., Goulart P.J., & Nakatsukasa, Y.
-An active-set algorithm for norm constrained quadratic problems
-arXiv:1906.04022
 ```
 
 ## Installation
