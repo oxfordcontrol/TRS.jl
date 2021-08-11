@@ -10,7 +10,7 @@ Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 
 
 [compat] 
-Arpack = "= 0.2.3"
+Arpack = "= 0.3.2"
 LinearMaps = "= 2.2.0"
 IterativeSolvers = "= 0.7.1"
 Polynomials = "= 0.5.1"
