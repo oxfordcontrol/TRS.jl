@@ -1,7 +1,8 @@
-include("../src/TRS.jl")
-using Main.TRS
-using Test
+module TRSTests
+using TRS
 
+using Test, JLD2, MATLAB # [extras] 
+using Arpack, Polynomials, MATLAB, LinearAlgebra, Random # [deps]
 
 @testset "All Unit Tests" begin
   include("./trs.jl")
@@ -9,4 +10,5 @@ using Test
   include("./trs_ellipsoid.jl")
   include("./special_cases.jl")
 end
-nothing
+
+end # module

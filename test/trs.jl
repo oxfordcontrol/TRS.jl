@@ -38,6 +38,7 @@ for n in [2, 5, 30, 100, 1000]
             @test diff <= 1e-3*r[i]
         end
     end
+    
     # hard case
     λ_min, v, _ = eigs(-P, nev=1, which=:LR)
     v = v/norm(v)
