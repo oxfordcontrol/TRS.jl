@@ -28,7 +28,7 @@ function find_feasible_point(b::AbstractVector{T}, r::T, project!, F::Factorizat
 	@assert(norm(x) <= r, "The problem is infeasible.")
 	d = project!(randn(n)) # Find a direction in the nullspace of A
 	# Calculate alpha such that ‖x + alpha*d‖ = r
-	alpha = roots(Poly([norm(x)^2 - r^2, 2*d'*x, norm(d)^2]))
+	alpha = roots(Polynomial([norm(x)^2 - r^2, 2*d'*x, norm(d)^2]))
 	x += alpha[1]*d # Now ‖x‖ = r
 
 	return x

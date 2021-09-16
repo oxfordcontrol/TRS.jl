@@ -12,7 +12,7 @@ function check_interior!(X::AbstractMatrix, info::TRSinfo, P, q::AbstractVector;
 	if info.λ[1] < -1e-9 # Global solution is in the interior
 		x1 = X[:, 1]
 		if !direct
-			cg!(x1, P, -q, tol=(eps(real(eltype(q)))/2)^(2/3))
+			cg!(x1, P, -q, reltol=(eps(real(eltype(q)))/2)^(2/3))
 		else
 			x1 = -(P\q)
 		end

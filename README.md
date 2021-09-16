@@ -8,11 +8,16 @@ subject to  ‖x‖ ≤ r
 where `x` in the `n-`dimensional variable. This is a **matrix-free** method returning highly accurate solutions efficiently by solving a **single** eigenproblem. It accesses `P` *only* via matrix multiplications (i.e. via `mul!`), so it can take full advantage of `P`'s structure/sparsity.
 
 Furthermore, the following extensions are supported:
-- [Ellipsoidal Norms](#ellipsoidal-norms)
-- [Linear Equality constraints](#equality-constraints)
-- [Finding local-no-global minimizers](#finding-local-no-global-minimizers)
-- [Solving constant-norm problems](#solving-constant-norm-problems)
-- [Solving small problems efficiently](#solving-small-problems)
+- [TRS.jl: Solving the Trust Region Subproblem](#trsjl-solving-the-trust-region-subproblem)
+  - [Installation](#installation)
+  - [Documentation](#documentation)
+    - [Standard TRS](#standard-trs)
+    - [Ellipsoidal Norms](#ellipsoidal-norms)
+    - [Equality constraints](#equality-constraints)
+    - [Finding local-no-global minimizers](#finding-local-no-global-minimizers)
+    - [Solving constant-norm problems](#solving-constant-norm-problems)
+    - [Solving small problems](#solving-small-problems)
+    - [The `TRSInfo` struct](#the-trsinfo-struct)
 
 This package has been specifically designed for large scale problems. Separate, efficient [functions for small problems](#solving-small-problems) are also provided.
 
@@ -37,6 +42,15 @@ This package can be installed by running
 add https://github.com/oxfordcontrol/TRS.jl
 ```
 in [Julia's Pkg REPL mode](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Getting-Started-1).
+
+
+Alternatively, this package can be installed by running
+```
+using Pkg
+Pkg.add(url="https://github.com/oxfordcontrol/TRS.jl")
+```
+in a notebook enviroment. 
+
 ## Documentation
 ### Standard TRS
 The global solution of the standard TRS

@@ -124,7 +124,7 @@ function extract_solution_hard_case(P, q::AbstractVector{T}, r::T, C, l::T,
 	end
 
 	if sqrt(y'*C*y) < r
-		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+		α = roots(Polynomial([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 		x1 = y + α[1]*v2
 		x2 = y + α[2]*v2
 		return [x1 x2]
@@ -144,7 +144,7 @@ function extract_solution_hard_case_direct(P, q::AbstractVector{T}, r::T, C, l::
 	F = qr(A, Val(true))
 	y = -(F\q) # y is the minimum norm solution of P + l*C = q
 	if sqrt(y'*C*y) < r
-		α = roots(Poly([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
+		α = roots(Polynomial([y'*(C*y) - r^2, 2*(C*v2)'*y, v2'*(C*v2)]))
 		x1 = y + α[1]*v2
 		x2 = y + α[2]*v2
 		return [x1 x2]

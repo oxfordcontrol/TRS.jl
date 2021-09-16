@@ -1,5 +1,6 @@
 function eigenproblem(P, q::AbstractVector{T}, r::T, nev=1;
 	tol=0.0, maxiter=300, v0=zeros((0,))) where {T}
+	
 	"""
 	Calculates rightmost eigenvalues/vectors of
 
