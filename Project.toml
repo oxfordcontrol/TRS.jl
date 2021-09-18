@@ -15,5 +15,8 @@ JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 MATLAB = "10e44e05-a98a-55b3-a45b-ba969058deb6"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[compat]
+Polynomials = "≥ 1.4.0"
+
 [targets]
 test = ["Test", "MATLAB", "JLD2"]
