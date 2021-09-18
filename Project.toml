@@ -1,6 +1,7 @@
 name = "TRS"
 uuid = "7a052949-c101-4ca3-9a7e-43a2532b2fa8"
 license = "MIT"
+version = "0.0.0"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
