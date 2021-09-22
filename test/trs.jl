@@ -1,4 +1,5 @@
-using Test, Random
+using Test
+using Random
 using LinearAlgebra
 using MATLAB
 using Arpack
