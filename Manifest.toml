@@ -87,9 +87,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LinearMaps]]
 deps = ["LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "0a7c8fb69162e88412540b6c7bb28691e219372d"
+git-tree-sha1 = "a03a9d24d4597725d9e826cee1ef5164e6bdd661"
 uuid = "7a12625a-238d-50fd-b39a-03d52299707e"
-version = "3.4.0"
+version = "3.4.1"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
