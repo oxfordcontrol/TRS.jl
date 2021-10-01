@@ -38,7 +38,7 @@ for n in [3, 5, 10, 30, 100, 1000]
         P_ = Symmetric(N'*P*N)
 
         if norm(x) <= r[i]
-            alpha = roots(Poly([norm(x)^2 - r[i]^2, 2*d'*x, norm(d)^2]))
+            alpha = roots(Polynomial([norm(x)^2 - r[i]^2, 2*d'*x, norm(d)^2]))
             x += alpha[1]*d
 
             x0 = x - N*(N'*x)
